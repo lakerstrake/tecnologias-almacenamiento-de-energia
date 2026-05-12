@@ -1,0 +1,1912 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AntiGraviti | Electrónica de Potencia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Roboto Mono', 'monospace'],
+                    },
+                    colors: {
+                        ag: {
+                            base: '#0A0A0C',
+                            panel: '#141618',
+                            panelDark: '#0D0E10',
+                            silver: '#F5F5F7',
+                            accent: '#00E5FF',  /* Electric Blue */
+                            warning: '#FF3B30', /* Performance Red/Orange */
+                            green: '#34C759',   /* Eco Green */
+                            yellow: '#FFCC00'   /* High Voltage Yellow */
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0A0A0C;
+            color: #F5F5F7;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        .grid-bg {
+            background-image:
+                radial-gradient(circle at 50% -20%, rgba(0, 229, 255, 0.08) 0%, transparent 70%),
+                linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
+            background-size: 100% 100%, 60px 60px, 60px 60px;
+            background-position: center top, center center, center center;
+        }
+
+        #slider {
+            height: 100vh;
+            width: 100vw;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        #slider::-webkit-scrollbar {
+            display: none;
+        }
+
+        .slide-section {
+            height: 100vh;
+            width: 100%;
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            padding: 4rem 2rem 1rem 2rem;
+        }
+
+        .img-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.15;
+            filter: grayscale(50%) contrast(110%);
+            mix-blend-mode: luminosity;
+        }
+
+        .overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background: linear-gradient(to bottom, rgba(10, 10, 12, 0.7), rgba(10, 10, 12, 0.95));
+        }
+
+        .content-layer {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: 100%;
+            max-width: 80rem;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Premium Automotive Glass Panel */
+        .metal-panel {
+            background: rgba(20, 22, 24, 0.4);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+        }
+
+        .metal-panel:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 30px 60px rgba(0, 229, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .metal-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+            z-index: 0;
+        }
+
+        .metal-panel>* {
+            position: relative;
+            z-index: 1;
+        }
+
+        .silver-text {
+            background: linear-gradient(180deg, #FFFFFF 0%, #A1A1A6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .tech-border {
+            border-left: 3px solid #00E5FF;
+        }
+
+        .tech-border-warning {
+            border-left: 3px solid #FF3B30;
+        }
+
+        .tech-border-green {
+            border-left: 3px solid #34C759;
+        }
+
+        .tech-border-yellow {
+            border-left: 3px solid #FFCC00;
+        }
+
+        .slide-indicator {
+            position: fixed;
+            right: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        .dot-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            cursor: pointer;
+        }
+
+        .dot-label {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 10px;
+            color: #A1A1A6;
+            opacity: 0;
+            transition: opacity 0.3s, color 0.3s;
+            text-transform: uppercase;
+            text-align: right;
+            pointer-events: none;
+        }
+
+        .dot-container:hover .dot-label,
+        .dot-container.active .dot-label {
+            opacity: 1;
+        }
+
+        .dot-container.active .dot-label {
+            color: #00E5FF;
+            font-weight: bold;
+        }
+
+        .dot {
+            width: 4px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.15);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            border-radius: 4px;
+        }
+
+        .dot-container.active .dot {
+            background: #00E5FF;
+            height: 32px;
+            box-shadow: 0 0 12px rgba(0, 229, 255, 0.6);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .anim-item {
+            opacity: 0;
+        }
+
+        .is-visible .anim-item {
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .delay-1 {
+            animation-delay: 0.1s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.2s;
+        }
+
+        .delay-3 {
+            animation-delay: 0.3s;
+        }
+
+        .delay-4 {
+            animation-delay: 0.4s;
+        }
+
+        .delay-5 {
+            animation-delay: 0.5s;
+        }
+
+        h2 {
+            font-size: 1.8rem !important;
+            letter-spacing: -0.02em;
+            font-weight: 600;
+            margin-bottom: 0.75rem !important;
+        }
+
+        p,
+        li,
+        td,
+        th {
+            font-size: 0.85rem !important;
+            line-height: 1.6;
+            color: #A1A1A6;
+        }
+
+        strong {
+            color: #F5F5F7;
+            font-weight: 600;
+        }
+
+        .tech-data {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.7rem !important;
+            letter-spacing: 0.05em;
+            font-weight: 500;
+        }
+
+        .svg-icon {
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+
+        /* Nuevos Estilos Futuristas / Automotriz */
+        .news-ticker {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 35px;
+            background: rgba(10, 10, 12, 0.8);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .ticker-wrap {
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            box-sizing: content-box;
+        }
+
+        .ticker-content {
+            display: inline-block;
+            white-space: nowrap;
+            padding-left: 100%;
+            animation: ticker 40s linear infinite;
+        }
+
+        .ticker-item {
+            display: inline-block;
+            padding: 0 2rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            color: #00E5FF;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .ticker-item span {
+            color: #A1A1A6;
+            font-weight: 400;
+            margin-left: 6px;
+        }
+
+        @keyframes ticker {
+            0% {
+                transform: translate3d(0, 0, 0);
+            }
+
+            100% {
+                transform: translate3d(-100%, 0, 0);
+            }
+        }
+
+        .float-3d {
+            transition: transform 0.5s ease;
+        }
+
+        .moving-electrons {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            border-radius: inherit;
+        }
+
+        .electron {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #00E5FF;
+            border-radius: 50%;
+            box-shadow: 0 0 12px 2px #00E5FF;
+        }
+
+        .e1 {
+            top: 20%;
+            left: -10%;
+            animation: flowRight 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+
+        .e2 {
+            top: 50%;
+            left: -10%;
+            animation: flowRight 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite 1s;
+            background: #FFCC00;
+            box-shadow: 0 0 12px 2px #FFCC00;
+        }
+
+        .e3 {
+            top: 80%;
+            left: -10%;
+            animation: flowRight 5s cubic-bezier(0.4, 0, 0.2, 1) infinite 0.5s;
+            background: #34C759;
+            box-shadow: 0 0 12px 2px #34C759;
+        }
+
+        @keyframes flowRight {
+            0% {
+                left: -10%;
+                opacity: 0;
+            }
+
+            20% {
+                opacity: 1;
+            }
+
+            80% {
+                opacity: 1;
+            }
+
+            100% {
+                left: 110%;
+                opacity: 0;
+            }
+        }
+
+        .video-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.2;
+            filter: grayscale(20%) contrast(110%);
+            mix-blend-mode: screen;
+        }
+    </style>
+</head>
+
+<body class="antialiased bg-[#0A0A0C]">
+    <canvas id="gridCanvas" class="fixed inset-0 pointer-events-none opacity-40 mix-blend-screen" style="z-index: 0;"></canvas>
+
+    <!-- Header AntiGraviti -->
+    <nav class="fixed w-full z-50 h-14 flex items-center px-8 border-b border-white/5 bg-[#0A0A0C]/80 backdrop-blur-xl">
+        <div class="flex items-center gap-3">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00E5FF" stroke-width="1.5">
+                <path d="M12 2L2 22h20L12 2z" />
+                <path d="M12 10v6" />
+            </svg>
+            <div class="font-sans font-medium text-white tracking-[0.2em] text-sm uppercase silver-text">
+                Electronica de Potencia <span class="text-slate-500 font-light tracking-normal ml-2">Energy
+                    Storage</span>
+            </div>
+        </div>
+        <div class="ml-auto flex gap-6 text-[9px] text-slate-400 font-mono items-center">
+            <span class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-ag-accent animate-pulse"></div> SYS_ONLINE
+            </span>
+            <span class="px-2 py-1 bg-white/5 border border-white/10">NAV_MODE: SCROLL</span>
+        </div>
+    </nav>
+
+    <!-- News Ticker -->
+    <div class="news-ticker">
+        <div class="ticker-wrap">
+            <div class="ticker-content">
+                <div class="ticker-item">BREAKING <span>CATL lanza batería Shenxing PLUS: 600 km de autonomía en 10
+                        minutos de carga.</span></div>
+                <div class="ticker-item">TECH ALERT <span>BYD Blade Battery de 2da generación alcanza densidad récord de
+                        190 Wh/kg con LFP.</span></div>
+                <div class="ticker-item">RESEARCH <span>Stanford desarrolla electrolito sólido que previene dendritas en
+                        baterías de litio metálico.</span></div>
+                <div class="ticker-item">INDUSTRY <span>Electrodomésticos ahora integran baterías LFP para operar fuera
+                        de la red y reducir picos de consumo.</span></div>
+                <div class="ticker-item">TREND <span>QuantumScape despacha celdas QSE-5 de estado sólido a fabricantes
+                        de autos para pruebas.</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Indicadores -->
+    <div class="slide-indicator" id="dots"></div>
+
+    <div id="slider">
+
+        <!-- 01: PORTADA -->
+        <section class="slide-section" id="slide-1" data-label="Portada">
+            <div class="img-bg"
+                style="background-image: url('https://images.unsplash.com/photo-1617704548623-340376564e68?auto=format&fit=crop&w=1920&q=80'); opacity: 0.3;">
+            </div>
+            <div class="overlay"></div>
+            <div class="content-layer">
+                <div class="max-w-4xl border-l-4 border-ag-accent pl-8">
+                    <div class="anim-item delay-1 flex items-center gap-3 mb-6">
+                        <span
+                            class="px-2 py-1 bg-ag-accent/20 border border-ag-accent text-ag-accent tech-data uppercase">Electrónica
+                            de Potencia · 7mo Semestre</span>
+                        <span class="tech-data text-slate-400 uppercase">PROJECT: ENERGY_STORAGE_2026</span>
+                    </div>
+                    <h1
+                        class="anim-item delay-2 font-sans text-5xl lg:text-7xl font-black tracking-tighter mb-6 leading-tight silver-text">
+                        "La guerra por la energía ya no es generarla... sino almacenarla."
+                    </h1>
+                    <p class="anim-item delay-3 text-lg text-slate-300 border-b border-white/10 pb-6 mb-8 max-w-2xl">
+                        Supercondensadores y Baterías: Física, Tipos y Tendencias 2026+
+                    </p>
+
+                    <div class="anim-item delay-4 grid grid-cols-2 gap-4 max-w-xl mb-6">
+                        <div class="metal-panel p-4">
+                            <p class="tech-data text-ag-accent mb-1">OPERATORS / PRESENTADO POR</p>
+                            <p class="text-xs font-bold text-white">Nicol Sáenz | Sebastián Landinez<br>Juan Lagos |
+                                Juan Suárez</p>
+                        </div>
+                    </div>
+                    <p class="anim-item delay-5 tech-data text-slate-500 italic border-l-2 border-slate-600 pl-3">
+                        ❝ La energía no se crea ni se destruye... pero sí se almacena de forma inteligente. ❞
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 02: AGENDA -->
+        <section class="slide-section" id="slide-2" data-label="Agenda">
+            <div class="img-bg"
+                style="background-image: url('https://images.unsplash.com/photo-1504917595217-d4ce5eb96784?auto=format&fit=crop&w=1920&q=80');">
+            </div>
+            <div class="overlay"></div>
+            <div class="content-layer">
+                <h2 class="anim-item delay-1 flex items-center gap-4"><span
+                        class="tech-data text-ag-accent bg-ag-accent/10 px-2 py-1">SYS.DIR</span> Agenda · Hoja de Ruta
+                    Técnica</h2>
+
+                <div class="grid grid-cols-3 gap-4 mt-6">
+                    <div class="anim-item delay-2 metal-panel p-4 tech-border">
+                        <div class="tech-data text-ag-accent mb-1">01. EL DILEMA GLOBAL</div>
+                        <p class="text-[11px] text-slate-400">Contexto IEA/BNEF. Por qué importa hoy más que nunca.</p>
+                    </div>
+                    <div class="anim-item delay-3 metal-panel p-4 tech-border">
+                        <div class="tech-data text-ag-accent mb-1">02. DIAGRAMA RAGONE</div>
+                        <p class="text-[11px] text-slate-400">Compromiso ineludible Potencia vs Energía.</p>
+                    </div>
+                    <div class="anim-item delay-4 metal-panel p-4 tech-border">
+                        <div class="tech-data text-ag-accent mb-1">03. SUPERCONDENSADORES</div>
+                        <p class="text-[11px] text-slate-400">Física EDLC, pseudocapacitancia, ESR y circuitos.</p>
+                    </div>
+                    <div class="anim-item delay-5 metal-panel p-4 tech-border-warning">
+                        <div class="tech-data text-ag-warning mb-1">04. BATERÍAS LÍNEA TIEMPO</div>
+                        <p class="text-[11px] text-slate-400">LFP, NMC, Estado Sólido, Li-S, Na-Ion.</p>
+                    </div>
+                    <div class="anim-item delay-6 metal-panel p-4 tech-border-green">
+                        <div class="tech-data text-ag-green mb-1">05. COLOMBIA Y EL MUNDO</div>
+                        <p class="text-[11px] text-slate-400">Reto local, déficit ENFICC, Celsia Palmira 2.</p>
+                    </div>
+                    <div class="anim-item delay-6 metal-panel p-4 tech-border-yellow">
+                        <div class="tech-data text-ag-yellow mb-1">06. ELECTRÓNICA DE POTENCIA</div>
+                        <p class="text-[11px] text-slate-400">Convertidores DC-DC, semiconductores SiC/GaN.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 03: CONTEXTO GLOBAL (COMPLETO) -->
+        <section class="slide-section" id="slide-3" data-label="01. Problema Global">
+            <div class="img-bg"
+                style="background-image: url('https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&w=1920&q=80'); opacity: 0.15">
+            </div>
+            <div class="overlay"></div>
+            <div class="content-layer">
+                <div class="flex items-start gap-8 h-full">
+                    <div class="w-1/2 flex flex-col justify-center">
+                        <div class="anim-item delay-1 tech-data text-slate-400 mb-2">DATALOG: BLOOMBERG NEF [MAYO 2026]
+                        </div>
+                        <h2 class="anim-item delay-2 font-bold silver-text mb-4">El Dilema Global de los 100 GW</h2>
+                        <div class="anim-item delay-3 text-slate-300 mb-6 border-l-2 pl-4 border-ag-accent">
+                            La transición energética no falla por falta de generación… falla por falta de <strong
+                                class="text-white">almacenamiento en el momento exacto</strong>.
+                        </div>
+
+                        <div class="anim-item delay-4 grid grid-cols-2 gap-4 mb-4">
+                            <div class="metal-panel p-4 text-center border-t-2 border-t-ag-accent">
+                                <p class="text-3xl font-black text-white"><span class="count-up" data-val="112">0</span><span
+                                        class="text-sm text-ag-accent">GW</span></p>
+                                <p class="tech-data text-slate-400 mt-1">INSTALADOS 2025</p>
+                            </div>
+                            <div class="metal-panel p-4 text-center border-t-2 border-t-ag-green">
+                                <p class="text-3xl font-black text-white">+48<span
+                                        class="text-sm text-ag-green">%</span></p>
+                                <p class="tech-data text-slate-400 mt-1">CRECIMIENTO YoY</p>
+                            </div>
+                            <div class="metal-panel p-4 text-center border-t-2 border-t-ag-warning">
+                                <p class="text-3xl font-black text-white">307<span
+                                        class="text-sm text-ag-warning">GWh</span></p>
+                                <p class="tech-data text-slate-400 mt-1">ENERGÍA 2025</p>
+                            </div>
+                            <div class="metal-panel p-4 text-center bg-white/5">
+                                <p class="text-3xl font-black text-white">4<span
+                                        class="text-sm text-slate-400">años</span></p>
+                                <p class="tech-data text-slate-400 mt-1">10→100 GW (Solar: 8)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-1/2 flex flex-col justify-center">
+                        <div class="anim-item delay-5 metal-panel p-6 border border-white/10">
+                            <h3 class="font-bold text-white mb-4 tech-data">CRECIMIENTO GW/AÑO (PROYECCIÓN BNEF)</h3>
+                            <div
+                                class="flex items-end space-x-3 h-32 border-b border-l border-white/20 pb-1 pl-2 relative">
+                                <div class="bg-slate-700 w-12 rounded-t" style="height: 10%"></div>
+                                <div class="bg-slate-600 w-12 rounded-t" style="height: 15%"></div>
+                                <div class="bg-ag-accent/60 w-12 rounded-t" style="height: 25%"></div>
+                                <div class="bg-ag-accent/80 w-12 rounded-t" style="height: 40%"></div>
+                                <div class="bg-ag-accent w-12 rounded-t" style="height: 60%"></div>
+                                <div class="bg-white w-12 rounded-t relative" style="height: 80%"><span
+                                        class="absolute -top-5 left-0 tech-data text-white">112GW</span></div>
+                                <div class="w-8"></div>
+                                <div class="bg-ag-warning w-12 rounded-t border-2 border-dashed border-white relative"
+                                    style="height: 100%"><span
+                                        class="absolute -top-5 -left-4 tech-data text-ag-warning">>300GW</span></div>
+                            </div>
+                            <div class="flex space-x-3 tech-data text-slate-400 mt-2 ml-2">
+                                <span class="w-12 text-center">20</span><span class="w-12 text-center">21</span><span
+                                    class="w-12 text-center">22</span><span class="w-12 text-center">23</span><span
+                                    class="w-12 text-center">24</span><span
+                                    class="w-12 text-center text-white font-bold">25</span><span
+                                    class="w-8"></span><span
+                                    class="w-12 text-center text-ag-warning font-bold">36</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 04: RAGONE -->
+        <section class="slide-section" id="slide-4" data-label="02. Diag. Ragone">
+            <div class="img-bg"
+                style="background-image: url('https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&w=1920&q=80'); opacity: 0.1">
+            </div>
+            <div class="overlay"></div>
+            <div class="content-layer">
+                <div class="flex items-center gap-8 h-full">
+                    <div class="w-7/12 flex flex-col justify-center">
+                        <div class="anim-item delay-1 metal-panel p-4 relative h-[450px] w-full border border-white/10 flex items-center justify-center bg-black/60">
+                            <canvas id="ragoneChart" class="w-full h-full"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="w-5/12 flex flex-col justify-center">
+                        <div class="anim-item delay-2 tech-data text-slate-400 mb-2">ANÁLISIS FÍSICO</div>
+                        <h2 class="anim-item delay-3 font-bold silver-text mb-6">El Diagrama de Ragone</h2>
+                        <div class="anim-item delay-4 space-y-4 text-slate-300 relative">
+                            <p class="border-l-2 border-ag-accent pl-4">
+                                <strong class="text-white block mb-1">Alta Densidad de Potencia</strong>
+                                Supercondensadores. Descarga masiva en milisegundos. Ideal para absorción de picos y
+                                frenado.
+                            </p>
+                            <p class="border-l-2 border-ag-warning pl-4">
+                                <strong class="text-white block mb-1">Alta Densidad de Energía</strong>
+                                Baterías (Li-Ion). Suministro constante y prolongado. El compromiso fundamental de la
+                                física impide maximizar ambos simultáneamente.
+                            </p>
+                            <div class="metal-panel p-4 mt-6 flex flex-col gap-3 tech-data text-[11px] bg-black/40">
+                                <div class="flex justify-between border-b border-white/10 pb-2"><span><span
+                                            class="text-ag-accent mr-2">E</span> = ½·C·V²</span> <span
+                                        class="text-slate-500">[Energía]</span></div>
+                                <div class="flex justify-between"><span><span class="text-ag-warning mr-2">P_max</span>
+                                        = V²/(4·ESR)</span> <span class="text-slate-500">[Potencia Límite]</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 05: FÍSICA EDLC (COMPLETO) -->
+        <section class="slide-section" id="slide-5" data-label="Física EDLC">
+            <div class="img-bg"
+                style="background-image: url('https://images.unsplash.com/photo-1563207153-f403bf289096?auto=format&fit=crop&w=1920&q=80'); opacity: 0.1">
+            </div>
+            <div class="overlay"></div>
+            <div class="content-layer">
+                <div class="flex items-center gap-8 h-full">
+                    <div class="w-1/2 flex flex-col justify-center">
+                        <div class="anim-item delay-1 tech-data text-ag-accent mb-2">EDLC · FÍSICA Y CIRCUITOS</div>
+                        <h2 class="anim-item delay-2 font-bold silver-text mb-4">Física de EDLC</h2>
+                        <p class="anim-item delay-3 text-slate-300 mb-6 border-l-2 border-ag-accent pl-4">
+                            Los supercondensadores no almacenan química: <strong class="text-white">almacenan
+                                geometría</strong> mediante separación electrostática a escala nanométrica.
+                        </p>
+
+                        <div class="anim-item delay-4 metal-panel p-4 mb-4 border-l-4 border-ag-accent">
+                            <h4 class="font-bold text-white mb-2 tech-data">SIN REACCIÓN QUÍMICA</h4>
+                            <p class="text-slate-300 text-xs">Los iones solo se acumulan en la superficie (Capa de
+                                Helmholtz, 0.3-0.8nm). Al no haber estrés ni cambios volumétricos, la vida útil es casi
+                                infinita (>500,000 ciclos) con eficiencia del 100%.</p>
+                        </div>
+
+                        <div class="anim-item delay-5 metal-panel p-4 font-mono text-[11px] text-slate-300 bg-black/60">
+                            <p class="text-ag-accent font-bold mb-3 border-b border-white/10 pb-2">MODELO CIRCUITAL
+                                (ESR)</p>
+                            <p class="text-white">(+) ─── <span class="text-ag-warning">[ESR]</span> ─── ┬─── <span
+                                    class="text-ag-accent">[C]</span> ─── (+)</p>
+                            <p class="text-slate-500">
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│
+                            </p>
+                            <p class="text-white">
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                                    class="text-ag-yellow">[R_L]</span></p>
+                            <p class="text-slate-500">
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│
+                            </p>
+                            <p class="text-white">(−) ──────────────┴────────── (−)</p>
+                            <div class="mt-4 pt-3 border-t border-white/10 grid grid-cols-2 gap-2 text-[10px]">
+                                <div><span class="text-ag-warning font-bold">ESR</span>: Equivalente Serie (Limita
+                                    Potencia)</div>
+                                <div><span class="text-ag-yellow font-bold">R_L</span>: Resistencia Fuga (Autodescarga)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-1/2">
+                        <div
+                            class="anim-item delay-5 metal-panel relative w-full h-[450px] float-3d overflow-hidden rounded-2xl">
+                            <img src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=800&q=80"
+                                class="w-full h-full object-cover filter contrast-125 saturate-100 opacity-80 mix-blend-screen">
+                            <div class="moving-electrons">
+                                <div class="electron e1"></div>
+                                <div class="electron e2"></div>
+                                <div class="electron e3"></div>
+                            </div>
+                            <div class="absolute inset-0 border border-ag-accent/20 pointer-events-none rounded-2xl">
+                            </div>
+                            <div
+                                class="absolute top-4 right-4 bg-black/40 backdrop-blur-md border border-white/10 p-3 rounded-lg tech-data text-[9px] text-right">
+                                <span class="text-ag-accent block font-bold mb-1">CAPACITANCE: 3000F</span>
+                                <span class="text-slate-300 block">ESR: < 0.2mΩ</span>
+                                        <span class="text-slate-300 block">VOLTAGE: 2.7V DC</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 06: PSEUDOCONDENSADORES (COMPLETO) -->
+        <section class="slide-section" id="slide-6" data-label="Pseudocaps">
+            <div class="overlay"></div>
+            <div class="content-layer">
+                <h2 class="anim-item delay-1 font-bold silver-text mb-2 border-l-4 border-ag-accent pl-4">
+                    Pseudocondensadores e Híbridos</h2>
+                <p class="anim-item delay-2 text-slate-300 mb-6">Roban la química de las baterías para multiplicar la
+                    capacidad de los EDLC sin sacrificar velocidad.</p>
+
+                <div class="anim-item delay-3 metal-panel overflow-hidden mb-6">
+                    <table class="w-full text-left tech-data">
+                        <thead class="bg-black/50 text-ag-silver text-[10px]">
+                            <tr>
+                                <th class="p-3">Parámetro</th>
+                                <th class="p-3">EDLC</th>
+                                <th class="p-3">Pseudocap.</th>
+                                <th class="p-3">Híbrido (Asimétrico)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5 text-slate-300 bg-ag-panelDark/80 text-[11px]">
+                            <tr class="hover:bg-white/5 transition-colors">
+                                <td class="p-3 text-white font-bold">Mecanismo</td>
+                                <td class="p-3">Electrostático</td>
+                                <td class="p-3">Redox superficial</td>
+                                <td class="p-3">Electrost. + Redox</td>
+                            </tr>
+                            <tr class="bg-white/5 hover:bg-white/10 transition-colors">
+                                <td class="p-3 text-white font-bold">Energía (Wh/kg)</td>
+                                <td class="p-3">5 – 10</td>
+                                <td class="p-3 font-bold text-ag-accent">10 – 50</td>
+                                <td class="p-3 font-bold text-ag-green">20 – 100</td>
+                            </tr>
+                            <tr class="hover:bg-white/5 transition-colors">
+                                <td class="p-3 text-white font-bold">Potencia (W/kg)</td>
+                                <td class="p-3 font-bold text-ag-accent">>10,000</td>
+                                <td class="p-3">1k – 5k</td>
+                                <td class="p-3">500 – 2,000</td>
+                            </tr>
+                            <tr class="bg-white/5 hover:bg-white/10 transition-colors">
+                                <td class="p-3 text-white font-bold">Ciclos de vida</td>
+                                <td class="p-3 font-bold text-ag-accent">>500,000</td>
+                                <td class="p-3">10k – 50k</td>
+                                <td class="p-3">20k – 100k</td>
+                            </tr>
+                            <tr class="hover:bg-white/5 transition-colors">
+                                <td class="p-3 text-white font-bold">Materiales</td>
+                                <td class="p-3 text-xs">Carbón activado</td>
+                                <td class="p-3 text-xs">RuO₂, MnO₂, MXenes</td>
+                                <td class="p-3 text-xs">Carbón + Li-ion</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="anim-item delay-4 metal-panel p-5 border-t-2 border-white/20">
+                        <h4 class="font-bold text-sm mb-2 text-white tech-data">EDLC PURO</h4>
+                        <p class="text-xs text-slate-400">✅ Vida útil máxima | ✅ Efic. ~100%<br>Iones solo se acumulan
+                            sin reacción. No hay expansión.</p>
+                    </div>
+                    <div class="anim-item delay-5 metal-panel p-5 border-t-2 border-ag-warning bg-black/40">
+                        <h4 class="font-bold text-sm mb-2 text-ag-warning tech-data">PSEUDOCAP (REDOX RÁPIDO)</h4>
+                        <p class="text-xs text-slate-300">✅ Energía 10x mayor | ⚠️ Menor vida útil<br>Reacción: <span
+                                class="tech-data text-white bg-black/60 px-1 rounded">RuO₂ + xH⁺ + xe⁻ ⇌ HₓRuO₂</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 07: FUNDAMENTOS Y TOPOLOGÍAS -->
+        <section class="slide-section" id="slide-7" data-label="Fundamentos">
+            <div class="img-bg"
+                style="background-image: url('https://images.unsplash.com/photo-1620916297397-a4a5402a3c6c?auto=format&fit=crop&w=1920&q=80'); opacity: 0.1">
+            </div>
+            <div class="overlay"></div>
+            <div class="content-layer">
+                <div class="anim-item delay-1 tech-data text-slate-400 mb-2">SECCIÓN 1: INGENIERÍA DE MATERIALES</div>
+                <h2 class="anim-item delay-2 font-bold silver-text mb-4">Fundamentos y Topologías de Almacenamiento</h2>
+                <p class="anim-item delay-3 text-slate-300 mb-8 border-l-2 border-ag-warning pl-4">Para comprender la
+                    vanguardia, debemos diseccionar la <strong>"arquitectura del electrón"</strong>. La eficiencia se
+                    mide por densidad ($Wh/kg$) y tasa de descarga ($C-rate$).</p>
+
+                <div class="grid grid-cols-3 gap-6">
+                    <div class="anim-item delay-4 metal-panel p-5 border-t-2 border-ag-accent float-3d">
+                        <h4 class="font-bold text-white text-[11px] mb-3 tech-data bg-white/10 inline-block px-2 py-1">
+                            Ánodos (Polo Negativo)</h4>
+                        <p class="text-[11px] text-slate-300 mb-3">La gran transición es el paso del grafito al <strong
+                                class="text-ag-accent">Silicio (Si)</strong>.</p>
+                        <ul class="text-[11px] text-slate-400 space-y-2">
+                            <li class="flex items-start"><span class="text-ag-accent mr-2">»</span>Empresas:
+                                <strong>Group14</strong> y <strong>Sila Nanotechnologies</strong>.</li>
+                            <li class="flex items-start"><span class="text-ag-accent mr-2">»</span>Ánodos de
+                                nano-compuesto de silicio.</li>
+                            <li class="flex items-start text-white bg-black/40 p-1"><span
+                                    class="text-ag-green mr-2">✓</span>Permite un 20% más de capacidad en el mismo
+                                volumen.</li>
+                        </ul>
+                    </div>
+
+                    <div class="anim-item delay-5 metal-panel p-5 border-t-2 border-ag-warning float-3d">
+                        <h4 class="font-bold text-white text-[11px] mb-3 tech-data bg-white/10 inline-block px-2 py-1">
+                            Cátodos (Polo Positivo)</h4>
+                        <ul class="text-[11px] text-slate-300 space-y-3">
+                            <li><strong class="text-ag-green block">LFP (Litio-Ferrofosfato):</strong> El estándar de
+                                seguridad y bajo costo (liderado por BYD).</li>
+                            <li><strong class="text-ag-warning block">NMC (Níquel-Manganeso-Cobalto):</strong> Reservado
+                                para alta densidad y largo alcance.</li>
+                            <li><strong class="text-ag-accent block">Na-ion (Ion-Sodio):</strong> La gran novedad
+                                comercial de 2026; utiliza sodio (sal) en lugar de litio.</li>
+                        </ul>
+                    </div>
+
+                    <div
+                        class="anim-item delay-6 metal-panel p-5 border-t-2 border-ag-yellow float-3d shadow-[0_0_20px_rgba(255,193,7,0.15)]">
+                        <h4 class="font-bold text-white text-[11px] mb-3 tech-data bg-white/10 inline-block px-2 py-1">
+                            Electrolito (El Salto Quántico)</h4>
+                        <p class="text-[11px] text-slate-300 mb-3">El componente crítico de la década. Estamos migrando
+                            de líquidos inflamables a <strong>Electrolitos de Estado Sólido (Cerámicos)</strong>.</p>
+                        <div class="bg-red-900/20 border border-red-500/30 p-2 rounded mb-2">
+                            <span class="text-[9px] text-red-400">ANTES: Riesgo de incendio (Fugas térmicas).</span>
+                        </div>
+                        <div class="bg-green-900/20 border border-green-500/30 p-2 rounded">
+                            <span class="text-[9px] text-ag-green font-bold">HOY: Elimina el riesgo de incendio por
+                                completo.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 08: TECNOLOGÍAS Y TENDENCIAS -->
+        <section class="slide-section" id="slide-8" data-label="03. Mercado">
+            <div class="overlay"></div>
+            <div class="content-layer">
+                <div class="anim-item delay-1 tech-data text-slate-400 mb-2">SECCIÓN 2: MERCADO Y DESARROLLO</div>
+                <h2 class="anim-item delay-2 font-bold silver-text mb-2 border-l-4 border-ag-yellow pl-4">Tecnologías de
+                    Almacenamiento: Tipologías</h2>
+                <p class="anim-item delay-3 text-slate-300 mb-6">La vanguardia comercial en 2026. Soluciones específicas
+                    para retos específicos.</p>
+
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div
+                        class="anim-item delay-4 metal-panel p-5 border-t-2 border-t-ag-yellow relative overflow-hidden group float-3d">
+                        <h4 class="font-bold text-ag-yellow mb-2 tech-data">ESTADO SÓLIDO Y SEMI-SÓLIDO</h4>
+                        <p class="tech-data text-white mb-3 bg-white/10 inline-block px-2 py-1 rounded">QSE5
+                            (QuantumScape)</p>
+                        <ul class="text-[11px] text-slate-300 space-y-2 mb-3">
+                            <li class="flex items-start"><span class="text-ag-green mr-2">✓</span>Han logrado superar la
+                                barrera de los <strong>400 Wh/kg</strong>.</li>
+                            <li class="flex items-start"><span class="text-ag-green mr-2">✓</span>Eliminan el
+                                "separador" líquido.</li>
+                            <li class="flex items-start"><span class="text-ag-green mr-2">✓</span>Cargas ultra-rápidas
+                                sin degradación térmica.</li>
+                        </ul>
+                        <div class="mt-auto border-t border-white/10 pt-2 tech-data text-[9px] text-ag-yellow">ESTADO:
+                            Pre-producción masiva para vehículos de lujo.</div>
+                    </div>
+
+                    <div
+                        class="anim-item delay-5 metal-panel p-5 border-t-2 border-t-ag-accent relative overflow-hidden group float-3d">
+                        <h4 class="font-bold text-ag-accent mb-2 tech-data">BATERÍAS DE ION-SODIO (NA-ION)</h4>
+                        <p class="tech-data text-white mb-3 bg-white/10 inline-block px-2 py-1 rounded">Líderes: CATL y
+                            HiNa Battery</p>
+                        <ul class="text-[11px] text-slate-300 space-y-2 mb-3">
+                            <li class="flex items-start"><span class="text-ag-accent mr-2">✓</span>Funcionan
+                                perfectamente a <strong>-20°C</strong>, donde el litio falla.</li>
+                            <li class="flex items-start"><span class="text-ag-accent mr-2">✓</span>Utilizan Sodio, 1000x
+                                más abundante que el Litio.</li>
+                        </ul>
+                        <div class="mt-auto border-t border-white/10 pt-2 tech-data text-[9px] text-ag-accent">IDEAL
+                            PARA: Almacenamiento estacionario y micro-movilidad.</div>
+                    </div>
+
+                    <div
+                        class="anim-item delay-6 metal-panel p-5 border-t-2 border-t-ag-green relative overflow-hidden group float-3d">
+                        <h4 class="font-bold text-ag-green mb-2 tech-data">SUPERCONDENSADORES HÍBRIDOS</h4>
+                        <p class="tech-data text-white mb-3 bg-white/10 inline-block px-2 py-1 rounded">SuperBattery
+                            (Skeleton Tech)</p>
+                        <ul class="text-[11px] text-slate-300 space-y-2 mb-3">
+                            <li class="flex items-start"><span class="text-ag-green mr-2">✓</span>Utilizan
+                                <strong>Curved Graphene®</strong>.</li>
+                            <li class="flex items-start"><span class="text-ag-green mr-2">✓</span>No almacenan energía
+                                químicamente, sino electrostáticamente.</li>
+                            <li class="flex items-start text-white"><span class="text-ag-green mr-2">★</span>Soportan
+                                hasta <strong>1,000,000 de ciclos</strong> de carga.</li>
+                        </ul>
+                        <div class="mt-auto border-t border-white/10 pt-2 tech-data text-[9px] text-ag-green italic">
+                            "Algo imposible para una batería química."</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 08.1: AUTOMOVILISMO -->
+        <section class="slide-section" id="slide-automovilismo" data-label="Automovilismo">
+            <div class="overlay"></div>
+            <div class="content-layer">
+                <div class="grid grid-cols-2 gap-10 items-center h-full">
+                    <div>
+                        <div class="anim-item delay-1 tech-data text-ag-accent mb-2">SECCIÓN 3: LA PUNTA DE LANZA</div>
+                        <h2 class="anim-item delay-2 font-bold silver-text mb-4">Automovilismo: El Laboratorio del
+                            Futuro</h2>
+                        <p class="anim-item delay-3 text-slate-300 mb-6 border-l-2 border-ag-accent pl-4">El sector
+                            automotriz es el mayor impulsor de estas tecnologías, con nombres propios que definen el
+                            mercado.</p>
+
+                        <div class="anim-item delay-4 metal-panel overflow-hidden float-3d">
+                            <table class="w-full text-left tech-data">
+                                <thead class="bg-black/80 text-ag-accent text-[10px]">
+                                    <tr>
+                                        <th class="p-3">MARCA</th>
+                                        <th class="p-3">TECNOLOGÍA</th>
+                                        <th class="p-3">IMPACTO / APLICACIÓN</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-white/10 text-slate-300 bg-[#0A2540]/80 text-[10px]">
+                                    <tr class="hover:bg-white/5">
+                                        <td class="p-3 font-bold text-white">Tesla</td>
+                                        <td class="p-3">Celdas 4680 (Dry Electrode)</td>
+                                        <td class="p-3 text-slate-400">Fabricación sin solventes químicos; reduce el
+                                            costo por kWh en un 15%.</td>
+                                    </tr>
+                                    <tr class="hover:bg-white/5">
+                                        <td class="p-3 font-bold text-white">BYD</td>
+                                        <td class="p-3 text-ag-green">Blade Battery 2.0</td>
+                                        <td class="p-3 text-slate-400">Celdas laminares que actúan como refuerzo
+                                            estructural del chasis (Cell-to-Body).</td>
+                                    </tr>
+                                    <tr class="hover:bg-white/5">
+                                        <td class="p-3 font-bold text-white">Mercedes-Benz</td>
+                                        <td class="p-3">Titan Silicon™</td>
+                                        <td class="p-3 text-slate-400">Aplicada en el EQG; permite autonomías de +700 km
+                                            en SUVs pesados.</td>
+                                    </tr>
+                                    <tr class="hover:bg-white/5">
+                                        <td class="p-3 font-bold text-white">CATL</td>
+                                        <td class="p-3 text-ag-accent">Shenxing Superfast</td>
+                                        <td class="p-3 text-slate-400">Capaz de recuperar 400 km en solo 10 minutos
+                                            (Carga 4C).</td>
+                                    </tr>
+                                    <tr class="hover:bg-white/5">
+                                        <td class="p-3 font-bold text-white">Lamborghini</td>
+                                        <td class="p-3 text-ag-yellow">Supercap. de Polímero</td>
+                                        <td class="p-3 text-slate-400">Usado en el Revuelto para entrega inmediata de
+                                            potencia en el eje delantero.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div
+                        class="anim-item delay-5 metal-panel relative h-[500px] float-3d shadow-[0_0_40px_rgba(0,229,255,0.1)] rounded-2xl overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1593941707882-a5bba14938c7?auto=format&fit=crop&w=800&q=80"
+                            class="w-full h-full object-cover opacity-90">
+                        <div
+                            class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black via-black/80 to-transparent p-6">
+                            <span
+                                class="tech-data text-[10px] text-ag-accent bg-ag-accent/10 px-3 py-1.5 border border-ag-accent/20 rounded-full">VISUALIZACIÓN:
+                                INTEGRACIÓN CELL-TO-BODY</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 08.2: ELECTRODOMESTICOS -->
+        <section class="slide-section" id="slide-electrodomesticos" data-label="Domótica">
+            <div class="overlay"></div>
+            <div class="content-layer">
+                <div class="grid grid-cols-2 gap-10 items-center h-full">
+                    <div
+                        class="anim-item delay-1 metal-panel relative h-[450px] float-3d shadow-[0_0_40px_rgba(52,199,89,0.1)] order-2 md:order-1 rounded-2xl overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1558442074-3c19857bc1dc?auto=format&fit=crop&w=800&q=80"
+                            class="w-full h-full object-cover opacity-80 mix-blend-screen">
+                        <div class="moving-electrons">
+                            <div class="electron e3" style="animation-duration: 5s;"></div>
+                        </div>
+                    </div>
+                    <div class="order-1 md:order-2">
+                        <div class="anim-item delay-2 tech-data text-ag-green mb-2">SECCIÓN 4: DOMÓTICA E INDUSTRIA
+                        </div>
+                        <h2 class="anim-item delay-3 font-bold silver-text mb-4">Gestión Energética Doméstica</h2>
+                        <p class="anim-item delay-4 text-slate-300 mb-6 border-l-2 border-ag-green pl-4">En 2026, los
+                            electrodomésticos han dejado de ser "cargas" para ser <strong>"activos"</strong> de la red.
+                        </p>
+
+                        <div class="space-y-4">
+                            <div
+                                class="anim-item delay-5 metal-panel p-4 border-l-2 border-ag-green bg-black/40 float-3d">
+                                <h4 class="font-bold text-white text-[11px] mb-2 tech-data">ECOSISTEMAS DE
+                                    ALMACENAMIENTO (ESS)</h4>
+                                <ul class="text-[11px] text-slate-300 space-y-2">
+                                    <li><strong class="text-ag-green">EcoFlow & Bluetti:</strong> Estaciones de energía
+                                        con celdas de Sodio para hogares, larga vida útil para herramientas.</li>
+                                    <li><strong class="text-ag-green">Samsung Bespoke AI:</strong> Implementa el <em>AI
+                                            Energy Mode</em>. Usa el aislamiento del refrigerador como "batería
+                                        térmica", enfriando de más cuando la energía es barata.</li>
+                                </ul>
+                            </div>
+
+                            <div
+                                class="anim-item delay-6 metal-panel p-4 border-l-2 border-ag-accent bg-black/40 float-3d">
+                                <h4 class="font-bold text-white text-[11px] mb-2 tech-data">HERRAMIENTAS DE CARGA
+                                    ULTRA-RÁPIDA</h4>
+                                <ul class="text-[11px] text-slate-300 space-y-2">
+                                    <li><strong class="text-ag-accent">Dyson:</strong> Aspiradoras con celdas de estado
+                                        semi-sólido. Succión constante sin pérdida de voltaje.</li>
+                                    <li><strong class="text-ag-accent">Herramientas Pro:</strong> Taladros y sierras con
+                                        supercondensadores de carbono. Se cargan en < 2 minutos para uso continuo.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 08.3: INVESTIGACIONES -->
+        <section class="slide-section" id="slide-investigaciones" data-label="Vanguardia">
+            <div class="overlay"></div>
+            <div class="content-layer">
+                <div class="grid grid-cols-2 gap-10 items-center h-full">
+                    <div>
+                        <div class="anim-item delay-1 tech-data text-slate-400 mb-2">SECCIÓN 5: VANGUARDIA CIENTÍFICA
+                        </div>
+                        <h2 class="anim-item delay-2 font-bold silver-text mb-4">Investigaciones y Futuro Cercano</h2>
+                        <p class="anim-item delay-3 text-slate-300 mb-6 border-l-2 border-slate-400 pl-4">El
+                            almacenamiento trasciende las baterías convencionales para integrarse en la infraestructura
+                            misma de nuestras ciudades.</p>
+
+                        <div class="space-y-4">
+                            <div class="anim-item delay-4 metal-panel p-4 border-l-4 border-ag-accent float-3d">
+                                <h4 class="font-bold text-white text-[11px] mb-1 tech-data">01. SUPERCONDENSADORES DE
+                                    CEMENTO (MIT)</h4>
+                                <p class="text-[11px] text-slate-300">Investigación líder que utiliza una mezcla de
+                                    cemento y negro de carbón para convertir los cimientos de los edificios en baterías
+                                    gigantes.</p>
+                            </div>
+
+                            <div class="anim-item delay-5 metal-panel p-4 border-l-4 border-ag-warning float-3d">
+                                <h4 class="font-bold text-white text-[11px] mb-1 tech-data">02. ENERGY HARVESTING</h4>
+                                <p class="text-[11px] text-slate-300">Desarrollo de interruptores y sensores que
+                                    funcionan mediante piezoelectricidad (presión física), eliminando la necesidad de
+                                    baterías pequeñas en el Smart Home.</p>
+                            </div>
+
+                            <div class="anim-item delay-6 metal-panel p-4 border-l-4 border-ag-green float-3d">
+                                <h4 class="font-bold text-white text-[11px] mb-1 tech-data">03. RECICLAJE CIRCULAR
+                                    (NORTHVOLT)</h4>
+                                <p class="text-[11px] text-slate-300">Han demostrado que las baterías fabricadas con un
+                                    100% de materiales reciclados rinden igual o mejor que las fabricadas con materiales
+                                    vírgenes.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="anim-item delay-6 metal-panel relative h-[450px] float-3d rounded-2xl overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80"
+                            class="w-full h-full object-cover filter contrast-110 saturate-100 opacity-80 mix-blend-screen">
+                        <div
+                            class="absolute bottom-6 right-6 bg-black/40 backdrop-blur-md border border-white/10 p-4 rounded-xl tech-data text-[10px] text-right">
+                            <span class="text-ag-accent block font-bold mb-1">RENDER: CONCRETO DORMIDO</span>
+                            <span class="text-slate-300">Nano-redes de carbono</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 08.4: FUENTES -->
+        <section class="slide-section" id="slide-fuentes" data-label="Fuentes Breves">
+            <div class="img-bg"
+                style="background-image: url('https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1920&q=80'); opacity: 0.1">
+            </div>
+            <div class="overlay"></div>
+            <div class="content-layer text-center">
+                <div
+                    class="anim-item delay-1 tech-data text-ag-accent mb-2 inline-block bg-ag-accent/10 px-4 py-1 border border-ag-accent/30">
+                    SECCIÓN 6: REFERENCIAS DE ESTUDIO</div>
+                <h2 class="anim-item delay-2 font-bold silver-text mb-8 mt-4 text-4xl">Fuentes Verificadas (2025-2026)
+                </h2>
+
+                <div class="grid grid-cols-2 gap-4 max-w-4xl mx-auto text-left">
+                    <div
+                        class="anim-item delay-3 metal-panel p-4 border-l-2 border-ag-green hover:bg-white/5 transition-colors cursor-pointer float-3d">
+                        <div class="tech-data text-white text-[11px] font-bold">IEA (International Energy Agency)</div>
+                        <div class="text-[10px] text-slate-400 mt-1 italic">Global EV Outlook 2026 Update</div>
+                    </div>
+                    <div
+                        class="anim-item delay-4 metal-panel p-4 border-l-2 border-ag-warning hover:bg-white/5 transition-colors cursor-pointer float-3d">
+                        <div class="tech-data text-white text-[11px] font-bold">BloombergNEF</div>
+                        <div class="text-[10px] text-slate-400 mt-1 italic">Battery Price Survey & Solid-State Readiness
+                        </div>
+                    </div>
+                    <div
+                        class="anim-item delay-5 metal-panel p-4 border-l-2 border-ag-accent hover:bg-white/5 transition-colors cursor-pointer float-3d">
+                        <div class="tech-data text-white text-[11px] font-bold">MIT Technology Review</div>
+                        <div class="text-[10px] text-slate-400 mt-1 italic">The rise of Silicon Anodes and Concrete
+                            Supercaps</div>
+                    </div>
+                    <div
+                        class="anim-item delay-6 metal-panel p-4 border-l-2 border-white/50 hover:bg-white/5 transition-colors cursor-pointer float-3d">
+                        <div class="tech-data text-white text-[11px] font-bold">Journal of Power Sources</div>
+                        <div class="text-[10px] text-slate-400 mt-1 italic">Comparative Analysis of Na-ion vs Li-ion
+                        </div>
+                    </div>
+                    <div
+                        class="anim-item delay-6 metal-panel p-4 border-l-2 border-ag-yellow hover:bg-white/5 transition-colors cursor-pointer float-3d col-span-2 text-center">
+                        <div class="tech-data text-white text-[11px] font-bold">IEEE Spectrum</div>
+                        <div class="text-[10px] text-slate-400 mt-1 italic">Why 900V Architectures are Winning the
+                            Racing Industry</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 09: TABLA MCKINSEY (COMPLETA) -->
+        <section class="slide-section" id="slide-9" data-label="Radar Comparativo">
+            <div class="overlay"></div>
+            <div class="content-layer">
+                <h2 class="anim-item delay-1 font-bold silver-text mb-6 border-l-4 border-white pl-4">Matriz Comparativa
+                    McKinsey</h2>
+                <div class="anim-item delay-2 metal-panel p-4 h-[450px] flex items-center justify-center bg-black/60 relative">
+                    <canvas id="radarChart" class="w-full h-full"></canvas>
+                    <div class="absolute bottom-4 right-4 bg-black/80 p-2 text-right text-[9px] text-slate-500 italic border border-white/10 rounded">
+                        * Datos proyectados a producción en escala 2028-2030 (BloombergNEF)
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10: EL MUNDO EN NÚMEROS (COMPLETO) -->
+        <section class="slide-section" id="slide-10" data-label="Datos Globales">
+            <div class="overlay"></div>
+            <div class="content-layer">
+                <div class="anim-item delay-1 tech-data text-slate-400 mb-2">DATALOG: IEA + BNEF</div>
+                <h2 class="anim-item delay-2 font-bold silver-text mb-6">El Mundo en Números</h2>
+                <p class="anim-item delay-3 text-slate-300 mb-6 border-l-2 border-ag-green pl-4">En una década, el LCOE
+                    cayó un <strong class="text-ag-green"><span class="count-up" data-val="85">0</span>%</strong>. En 2024, BESS superó a la hidroeléctrica de bombeo.</p>
+
+                <div class="grid grid-cols-2 gap-8 mb-6">
+                    <div
+                        class="anim-item delay-4 metal-panel p-6 flex flex-col justify-center border-t-2 border-ag-warning">
+                        <h4 class="font-bold text-white text-xs mb-6 tech-data text-center">LCOE BATERÍAS UTILITY-SCALE
+                            (4h)</h4>
+                        <div class="flex justify-around items-end h-24 border-b border-white/20 pb-2">
+                            <div class="flex flex-col items-center">
+                                <div
+                                    class="h-24 w-12 bg-white/10 border border-white/20 rounded-t flex items-end justify-center pb-2">
+                                    <span class="tech-data text-white">$155</span></div><span
+                                    class="text-[10px] mt-2 text-slate-400 tech-data">2023</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <div
+                                    class="h-16 w-12 bg-ag-green rounded-t flex items-end justify-center pb-2 shadow-[0_0_15px_rgba(76,175,80,0.4)]">
+                                    <span class="tech-data text-black">$104</span></div><span
+                                    class="text-[10px] mt-2 font-bold text-ag-green tech-data">2024</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <div
+                                    class="h-10 w-12 bg-transparent border-2 border-dashed border-ag-accent rounded-t flex items-end justify-center pb-2">
+                                    <span class="tech-data text-ag-accent">
+                                        <$70< /span>
+                                </div><span class="text-[10px] mt-2 text-ag-accent font-bold tech-data">2030</span>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-4 text-center">El LCOE solar en 2024 era ~$45. La
+                            convergencia es en 2030.</p>
+                    </div>
+
+                    <div
+                        class="anim-item delay-5 metal-panel p-6 flex flex-col justify-center border-t-2 border-ag-accent">
+                        <h4 class="font-bold text-white text-xs mb-6 text-center tech-data">CAPACIDAD GLOBAL ACUMULADA
+                            (IEA 2025)</h4>
+                        <div class="space-y-6">
+                            <div>
+                                <div class="flex justify-between tech-data mb-2"><span
+                                        class="text-white">Baterías</span><span class="text-ag-accent font-bold">295
+                                        GW</span></div>
+                                <div class="w-full bg-white/10 h-4 rounded overflow-hidden shadow-inner">
+                                    <div class="bg-gradient-to-r from-blue-500 to-ag-accent h-full w-[100%]"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between tech-data mb-2"><span class="text-slate-400">Bomba
+                                        Hidroeléctrica</span><span class="text-slate-400">185 GW</span></div>
+                                <div class="w-full bg-white/10 h-4 rounded overflow-hidden shadow-inner">
+                                    <div class="bg-white/20 h-full w-[62%]"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-ag-accent font-bold mt-6 text-center tech-data">"SUPERAN A LA HIDRO
+                            COMO PRINCIPAL SOLUCIÓN MUNDIAL."</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 11: COLOMBIA BESS (COMPLETO) -->
+        <section class="slide-section" id="slide-11" data-label="04. Colombia">
+            <div class="overlay"></div>
+            <div class="content-layer">
+                <div class="grid grid-cols-2 gap-10 items-center h-full">
+                    <div>
+                        <div class="anim-item delay-1 tech-data text-ag-warning mb-2">LOC: COLOMBIA | SIN</div>
+                        <h2 class="anim-item delay-2 font-bold silver-text mb-4">El Reto Local 🇨🇴</h2>
+                        <p class="anim-item delay-3 text-slate-300 mb-6 border-l-2 border-ag-warning pl-4">
+                            Tenemos un recurso hídrico gigante pero vulnerable (El Niño). BESS es la póliza de seguro
+                            del sistema eléctrico nacional.
+                        </p>
+
+                        <div class="anim-item delay-4 metal-panel p-5 mb-4 border-l-2 border-white/20">
+                            <h4 class="font-bold text-xs mb-3 text-white tech-data">MATRIZ ELÉCTRICA 2024 (XM/UPME)</h4>
+                            <div class="space-y-2 text-[11px] font-bold text-slate-300">
+                                <div class="flex items-center">
+                                    <div class="w-2 h-2 bg-ag-accent mr-3"></div> Hidroeléctrica: <span
+                                        class="ml-auto text-white">55-70%</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-2 h-2 bg-ag-warning mr-3"></div> Térmica a gas: <span
+                                        class="ml-auto text-white">20-30%</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-2 h-2 bg-ag-green mr-3"></div> Solar / Eólica: <span
+                                        class="ml-auto text-white">~9%</span>
+                                </div>
+                                <div class="flex items-center text-red-400 pt-2 border-t border-white/10 mt-2">
+                                    <div class="w-2 h-2 bg-red-500 mr-3"></div> Almacenamiento: <span
+                                        class="ml-auto text-red-400">
+                                        <0.1%< /span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="anim-item delay-5 bg-red-900/20 border border-red-500/30 p-4 rounded bg-black/40">
+                            <p class="text-[10px] text-red-200 tech-data leading-relaxed">
+                                ⚠️ DÉFICIT ENFICC PROYECTADO 25-26: <strong class="text-white text-sm">1,706
+                                    GWh/año</strong>.<br>
+                                Inversión requerida para mitigarlo: <strong class="text-white">USD $5,000M</strong> (SER
+                                Colombia).
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="anim-item delay-6 metal-panel relative h-[450px]">
+                        <img src="https://images.unsplash.com/photo-1508514177221-188b1c77eca1?auto=format&fit=crop&w=800&q=80"
+                            class="w-full h-full object-cover filter contrast-125 saturate-50 mix-blend-screen opacity-90">
+                        <div
+                            class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-end p-6 text-white">
+                            <span
+                                class="bg-ag-green text-black text-[9px] font-bold px-2 py-1 mb-3 tech-data w-max">HITO
+                                NACIONAL</span>
+                            <h3 class="text-2xl font-bold font-sans mb-1 text-white">Celsia Solar Palmira 2</h3>
+                            <p class="text-xs text-slate-300 mb-3">Primer BESS solar a gran escala en Colombia (Octubre
+                                2024).</p>
+                            <div class="bg-black/80 p-2 border border-white/20 tech-data text-[10px] text-ag-accent">
+                                CAP: 1 MW / 2 MWh | CHEM: LFP | MODE: Time-shifting
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 12: ELECTRONICA DE POTENCIA (COMPLETO) -->
+        <section class="slide-section" id="slide-12" data-label="05. Electrónica">
+            <div class="overlay"></div>
+            <div class="content-layer">
+                <div class="grid grid-cols-2 gap-10 items-center h-full">
+                    <div class="anim-item delay-1 metal-panel relative h-[450px] float-3d rounded-2xl overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80"
+                            class="w-full h-full object-cover filter contrast-125 saturate-100 opacity-50 mix-blend-screen">
+                        <div class="moving-electrons">
+                            <div class="electron e1" style="background: #00E5FF; box-shadow: 0 0 15px #00E5FF;"></div>
+                            <div class="electron e2" style="background: #00E5FF; box-shadow: 0 0 15px #00E5FF;"></div>
+                            <div class="electron e3" style="background: #00E5FF; box-shadow: 0 0 15px #00E5FF;"></div>
+                            <div class="electron e1" style="top: 30%; animation-delay: 1.5s;"></div>
+                            <div class="electron e3" style="top: 70%; animation-delay: 2s;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="anim-item delay-2 tech-data text-ag-accent mb-2">HARDWARE: DC-DC CONVERTERS</div>
+                        <h2 class="anim-item delay-3 font-bold silver-text mb-4">Electrónica de Potencia</h2>
+                        <p class="anim-item delay-4 text-slate-300 mb-6 border-l-2 border-ag-accent pl-4">
+                            Sin un convertidor DC-DC bidireccional de alta eficiencia, el mejor supercondensador del
+                            mundo es eléctricamente inútil.
+                        </p>
+
+                        <div class="anim-item delay-5 metal-panel p-5 bg-black/80 tech-data text-[10px] mb-6 border border-white/10">
+                            <p class="text-ag-accent font-bold mb-4 border-b border-white/20 pb-2">TOPOLOGÍA HALF-BRIDGE ANIMADA</p>
+                            <div class="flex items-center justify-between h-20 relative px-2">
+                                <div class="w-16 h-12 border border-slate-500 rounded flex items-center justify-center tech-data text-[10px] text-white bg-slate-800">SC/BAT</div>
+                                <div class="flex-1 h-1 bg-slate-600 relative mx-4">
+                                    <svg class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-8 text-ag-accent transition-all duration-300" id="inductorGraphic" viewBox="0 0 100 40" fill="none" stroke="currentColor" stroke-width="4">
+                                        <path d="M0,20 Q12.5,0 25,20 T50,20 T75,20 T100,20" id="coilPath"/>
+                                    </svg>
+                                    <div class="absolute inset-0 overflow-hidden"><div class="w-2 h-2 bg-ag-accent rounded-full absolute top-1/2 -translate-y-1/2" id="currentFlow" style="animation: flowRight 1s linear infinite;"></div></div>
+                                </div>
+                                <div class="flex flex-col justify-between h-full w-24">
+                                    <div class="border border-ag-warning bg-ag-warning/20 p-1 text-center tech-data text-[9px] rounded text-white" id="s1-switch">S1 (SiC) ▲</div>
+                                    <div class="border border-ag-warning bg-ag-warning/20 p-1 text-center tech-data text-[9px] rounded text-white opacity-40 mt-1" id="s2-switch">S2 (SiC) ▼</div>
+                                </div>
+                                <div class="w-16 h-12 border-l-4 border-slate-400 pl-2 flex items-center tech-data text-[10px] ml-4 text-white">BUS DC</div>
+                            </div>
+                            
+                            <div class="mt-4 border-t border-white/20 pt-4">
+                                <div class="flex justify-between text-[10px] tech-data text-slate-400 mb-2">
+                                    <span>Frecuencia Conmutación:</span>
+                                    <span id="freqValue" class="text-ag-accent font-bold">100 kHz</span>
+                                </div>
+                                <input type="range" id="freqSlider" min="0.1" max="5" step="0.1" value="0.1" class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-[8px] text-slate-500 mt-1">
+                                    <span>100 kHz (IGBT)</span>
+                                    <span>5 MHz (GaN)</span>
+                                </div>
+                                <p class="text-[9px] text-slate-400 mt-3 text-center">Tamaño del Inductor Magnético: <span id="inductorSize" class="text-ag-warning font-bold">100%</span></p>
+                            </div>
+                        </div>
+
+                        <div class="anim-item delay-6 metal-panel p-4 border-l-2 border-l-ag-accent">
+                            <h4 class="font-bold text-xs text-white mb-2 tech-data">CONTROL CASCADA HÍBRIDO</h4>
+                            <ul class="text-[11px] text-slate-300 space-y-2">
+                                <li class="flex"><span class="text-ag-accent mr-3 font-bold tech-data">1</span>
+                                    <p>Rama EDLC absorbe picos (τ < 1s).</p>
+                                </li>
+                                <li class="flex"><span class="text-ag-warning mr-3 font-bold tech-data">2</span>
+                                    <p>Rama Batería da energía base (τ > 1s).</p>
+                                </li>
+                                <li class="flex"><span class="text-ag-green mr-3 font-bold tech-data">3</span>
+                                    <p>WBG f altas reducen tamaño al 30%.</p>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 13: HORIZONTE 2030 (COMPLETO) -->
+        <section class="slide-section" id="slide-13" data-label="Horizonte 2030">
+            <div class="overlay"></div>
+            <div class="content-layer">
+                <div class="anim-item delay-1 tech-data text-slate-400 mb-2">DATALOG: NATURE ENERGY 2026</div>
+                <h2 class="anim-item delay-2 font-bold silver-text mb-4 border-l-4 border-white pl-4">Horizonte 2030:
+                    Tech Radar</h2>
+                <p class="anim-item delay-3 text-slate-300 mb-6 border-l-2 border-slate-500 pl-4">La frontera no es
+                    generar más energía limpia, es los materiales, la IA y el reciclaje para hacerla sostenible.</p>
+
+                <div class="grid grid-cols-3 gap-6 mb-6">
+                    <div class="anim-item delay-4 metal-panel p-6 border-t-2 border-slate-500">
+                        <h4 class="font-bold text-slate-300 text-[10px] mb-4 tech-data">◉ COMERCIAL HOY (BYD / CATL)
+                        </h4>
+                        <ul class="text-[11px] text-slate-400 space-y-2">
+                            <li>LFP dominante grid-scale (Blade)</li>
+                            <li>Shenxing 4C Carga Ultra-Rápida</li>
+                            <li>Cell-to-Pack (CTP) / Cell-to-Chassis</li>
+                            <li>Baterías en electrodomésticos</li>
+                        </ul>
+                    </div>
+                    <div
+                        class="anim-item delay-5 metal-panel p-6 border-t-2 border-ag-accent shadow-[0_0_20px_rgba(0,188,212,0.15)] transform scale-105 z-10 bg-black/60">
+                        <h4 class="font-bold text-ag-accent text-[10px] mb-4 tech-data">◎ ESCALA 2027-28</h4>
+                        <ul class="text-[11px] text-white space-y-2 font-medium">
+                            <li>SSB (QuantumScape Eagle)</li>
+                            <li>IA en BMS (Digital Twins)</li>
+                            <li>WBG (SiC/GaN) masivo</li>
+                            <li>Vehicle-to-Grid (V2G)</li>
+                        </ul>
+                    </div>
+                    <div class="anim-item delay-6 metal-panel p-6 border-t-2 border-ag-warning">
+                        <h4 class="font-bold text-ag-warning text-[10px] mb-4 tech-data">○ INVESTIGACIÓN 2030+</h4>
+                        <ul class="text-[11px] text-slate-400 space-y-2">
+                            <li>Baterías Hierro-Aire (100h+)</li>
+                            <li>Electrodos cuánticos</li>
+                            <li>Grafeno estructural</li>
+                            <li>CO₂ como electrolito</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div
+                    class="anim-item delay-6 text-center text-ag-accent tech-data text-[10px] bg-ag-accent/10 border border-ag-accent/20 p-4 rounded">
+                    "NO ESTAMOS SOLO ALMACENANDO ELECTRONES; ESTAMOS ALMACENANDO EL FUTURO SOSTENIBLE."
+                </div>
+            </div>
+        </section>
+
+        <!-- 14: VOZ EXPERTOS (COMPLETO) -->
+        <section class="slide-section" id="slide-14" data-label="Expertos">
+            <div class="overlay"></div>
+            <div class="content-layer">
+                <h2 class="anim-item delay-1 font-bold silver-text mb-2 border-l-4 border-ag-yellow pl-4">Intel &
+                    Expertos</h2>
+                <p class="anim-item delay-2 text-slate-300 mb-6">La transición energética no la lideran los que dan
+                    discursos. La lideran los ingenieros.</p>
+
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="anim-item delay-3 metal-panel p-6 border-l-2 border-l-ag-accent">
+                        <p class="text-[11px] font-medium text-slate-200 mb-4">"Para 2030, es factible que las baterías
+                            de fin de vida de EVs abastezcan más de la mitad del mercado estacionario. La economía
+                            circular no es filantropía: es la mejor ingeniería."</p>
+                        <p class="tech-data text-[9px] font-bold text-ag-accent">— JB Straubel, CEO Redwood Materials
+                        </p>
+                    </div>
+                    <div class="anim-item delay-4 metal-panel p-6 border-l-2 border-l-ag-warning">
+                        <p class="text-[11px] font-medium text-slate-200 mb-4">"El problema más grande de las baterías
+                            no es cuánta energía guardan, sino cómo las abusamos con picos de potencia. La electrónica
+                            de potencia es el amortiguador."</p>
+                        <p class="tech-data text-[9px] font-bold text-ag-warning">— Form Energy Insights</p>
+                    </div>
+                    <div class="anim-item delay-5 metal-panel p-6 border-l-2 border-l-ag-green">
+                        <p class="text-[11px] font-medium text-slate-200 mb-4">"Las baterías de sodio-ion necesitan
+                            brechas tecnológicas reales — no solo escala de producción — para ser verdaderamente
+                            competitivas."</p>
+                        <p class="tech-data text-[9px] font-bold text-ag-green">— Prof. William Chueh, Stanford</p>
+                    </div>
+                    <div class="anim-item delay-6 metal-panel p-6 border-l-2 border-l-ag-yellow">
+                        <p class="text-[11px] font-medium text-slate-200 mb-4">"Cada MHz ganado en frecuencia de
+                            conmutación es un gramo menos de inductor magnético. Eso también es electrónica de potencia
+                            en estado puro."</p>
+                        <p class="tech-data text-[9px] font-bold text-ag-yellow">— IEEE APEC 2025</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 15: FRASE CIERRE -->
+        <section class="slide-section text-center" id="slide-15" data-label="Cierre">
+            <div class="overlay" style="background: rgba(26, 29, 33, 0.95);"></div>
+            <div class="content-layer justify-center items-center">
+                <h2 class="anim-item delay-1 font-sans font-black text-white text-3xl md:text-5xl leading-tight mb-8">
+                    No estamos diseñando baterías.<br><br>
+                    <span class="silver-text">Estamos diseñando el permiso para que la humanidad siga encendida sin
+                        quemar el planeta.</span>
+                </h2>
+
+                <div
+                    class="anim-item delay-2 w-32 h-1 bg-gradient-to-r from-transparent via-ag-accent to-transparent mx-auto mb-8">
+                </div>
+
+                <p
+                    class="anim-item delay-3 text-slate-300 italic text-lg mb-8 font-light max-w-3xl mx-auto border-l-2 border-r-2 border-slate-600 px-6">
+                    Cada celda que optimizas, cada BMS que programas, cada convertidor que sincronizas con la red: es un
+                    acto de ingeniería que vale décadas de futuro.
+                </p>
+
+                <div class="anim-item delay-4 metal-panel p-4 inline-block border border-ag-warning/50">
+                    <p class="text-ag-warning font-bold text-[10px] tracking-[0.1em] tech-data">
+                        SYS_MSG: LA ELECTRÓNICA DE POTENCIA NO ES UNA MATERIA. ES UNA RESPONSABILIDAD CIVILIZATORIA.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 16: CALL TO ACTION (COMPLETO) -->
+        <section class="slide-section" id="slide-16" data-label="Call To Action">
+            <div class="overlay"></div>
+            <div class="content-layer text-center">
+                <h2 class="anim-item delay-1 font-black text-white mb-10 text-3xl md:text-4xl">
+                    ¿Serán espectadores, o serán quienes la cableen, <br><span class="silver-text">la programen y la
+                        optimicen?</span>
+                </h2>
+
+                <div class="grid grid-cols-3 gap-6 text-left mb-10">
+                    <div class="anim-item delay-2 metal-panel p-6 border-t-2 border-ag-accent">
+                        <div class="tech-data text-ag-accent text-[10px] mb-3 bg-ag-accent/10 inline-block px-2 py-1">
+                            01. SOFTWARE</div>
+                        <h4 class="font-bold text-white text-xs mb-2 tech-data">DISEÑEN EL BMS</h4>
+                        <p class="text-[10px] text-slate-300">Implementen estimadores Kalman extendido, balanceo activo
+                            de estado sólido y EIS en tiempo real para SOH.</p>
+                    </div>
+                    <div class="anim-item delay-3 metal-panel p-6 border-t-2 border-ag-warning">
+                        <div class="tech-data text-ag-warning text-[10px] mb-3 bg-ag-warning/10 inline-block px-2 py-1">
+                            02. HARDWARE</div>
+                        <h4 class="font-bold text-white text-xs mb-2 tech-data">OPTIMICEN CONVERTIDORES</h4>
+                        <p class="text-[10px] text-slate-300">Diseñen topologías AC-DC para V2G, Inversores multinivel
+                            para utility-scale BESS y PLL avanzados.</p>
+                    </div>
+                    <div class="anim-item delay-4 metal-panel p-6 border-t-2 border-ag-green">
+                        <div class="tech-data text-ag-green text-[10px] mb-3 bg-ag-green/10 inline-block px-2 py-1">03.
+                            LIFECYCLE</div>
+                        <h4 class="font-bold text-white text-xs mb-2 tech-data">CICLO DE VIDA</h4>
+                        <p class="text-[10px] text-slate-300">Piensen en Design for Disassembly. Diseñen la segunda vida
+                            de baterías de EV para almacenamiento estacionario.</p>
+                    </div>
+                </div>
+
+                <div class="anim-item delay-5 metal-panel p-5 max-w-3xl mx-auto border border-ag-accent/30 bg-black/40">
+                    <p class="text-white text-xs tech-data">
+                        En 5 años, Colombia necesitará ingenieros para integrar <strong class="text-ag-accent">7,543
+                            MW</strong> de generación distribuida. Esa persona es usted. Empieza ahora.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 17: REFERENCIAS (COMPLETO) -->
+        <section class="slide-section" id="slide-17" data-label="06. Referencias">
+            <div class="overlay"></div>
+            <div class="content-layer">
+                <h2 class="anim-item delay-1 font-bold silver-text mb-6 border-l-4 border-slate-500 pl-4">Intel_Sources
+                    (Referencias)</h2>
+
+                <div class="grid grid-cols-2 gap-8">
+                    <div class="anim-item delay-2 metal-panel p-6">
+                        <h4 class="font-bold text-[10px] text-ag-accent mb-4 border-b border-white/10 pb-2 tech-data">I.
+                            PAPERS PEER-REVIEWED</h4>
+                        <ul class="text-[10px] text-slate-300 space-y-3 list-decimal pl-5 tech-data">
+                            <li>Zhao X. et al. (2023). "Designing solid-state electrolytes." <span
+                                    class="text-white">Nature Energy, MIT.</span></li>
+                            <li>Pan H. et al. (2023). "Advanced lithium-sulfur batteries." <span
+                                    class="text-white">Joule, Stanford.</span></li>
+                            <li>Buchberger I. et al. (2022). "Operando analysis Na-ion." <span class="text-white">IEEE
+                                    Xplore, ETH Zürich.</span></li>
+                            <li>Jovanović P. et al. (2025). "Multiscale rGO for supercaps." <span
+                                    class="text-white">Nature Comms.</span></li>
+                            <li>Yao A., Chueh W. (2025). "Sodium-ion breakthroughs." <span class="text-white">Nature
+                                    Energy.</span></li>
+                            <li>Chen X. et al. (2024). "Hybrid SC-battery powertrain." <span class="text-white">IEEE
+                                    Trans. Power Electr.</span></li>
+                        </ul>
+                    </div>
+                    <div class="anim-item delay-3 metal-panel p-6">
+                        <h4 class="font-bold text-[10px] text-ag-warning mb-4 border-b border-white/10 pb-2 tech-data">
+                            II. MERCADO Y COLOMBIA</h4>
+                        <ul class="text-[10px] text-slate-300 space-y-3 list-decimal pl-5 tech-data">
+                            <li>Kikuma I. (2026). "Energy Storage Enters 100-GW Era." <span
+                                    class="text-white">BloombergNEF.</span></li>
+                            <li>IEA (2025). World Energy Storage Report.</li>
+                            <li>NREL/BNEF (2025). Spring Solar Update — LCOE Storage.</li>
+                            <li>QuantumScape Corp. (2025-2026). QSE-5 Technical Reports.</li>
+                            <li class="mt-4 text-ag-yellow font-bold">UPME (Abril 2025). Proyecciones Demanda y
+                                Generación.</li>
+                            <li class="text-ag-yellow font-bold">XM (Abril 2025). Informe CNO Balance ENFICC-Demanda.
+                            </li>
+                            <li class="text-ag-yellow font-bold">Celsia (Oct 2024). Celsia Solar Palmira 2 (BESS).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 18: CHEAT CODE APENDICE (COMPLETO) -->
+        <section class="slide-section" id="slide-18" data-label="Apéndice">
+            <div class="overlay"></div>
+            <div class="content-layer">
+                <div
+                    class="anim-item delay-1 tech-data text-red-500 bg-red-900/20 border border-red-500/30 px-2 py-1 w-max mb-2">
+                    APÉNDICE PRIVADO</div>
+                <h2 class="anim-item delay-2 font-bold silver-text mb-6 border-l-4 border-red-500 pl-4">Cheat Code (Guía
+                    de Ejecución)</h2>
+
+                <div class="grid grid-cols-2 gap-8">
+                    <div class="anim-item delay-3 metal-panel p-6 border-t-2 border-red-500">
+                        <h4 class="font-bold text-white text-[10px] mb-4 tech-data">DISTRIBUCIÓN DE TIEMPOS</h4>
+                        <ul class="text-[10px] text-slate-300 space-y-3 tech-data">
+                            <li><strong class="text-ag-accent">1-3 Portada/Contexto:</strong> Juan Suárez (apertura · 3
+                                min)</li>
+                            <li><strong class="text-ag-warning">4-6 Ragone/Supercap:</strong> Sebastián Landinez (física
+                                · 5 min)</li>
+                            <li><strong class="text-ag-yellow">7-9 Baterías:</strong> Juan Lagos (química/emergentes · 5
+                                min)</li>
+                            <li><strong class="text-ag-green">10-12 Datos/Col:</strong> Nicol Sáenz (datos reales · 5
+                                min)</li>
+                            <li><strong class="text-white">13-16 Tendencias:</strong> Todos (cierre · 5 min + Q&A)</li>
+                        </ul>
+                    </div>
+
+                    <div class="anim-item delay-4 metal-panel p-6 border-t-2 border-white">
+                        <h4 class="font-bold text-white text-[10px] mb-4 tech-data">TRANSICIONES DE GUION</h4>
+                        <div class="space-y-4 text-[10px] text-slate-300 italic tech-data">
+                            <p class="p-2 bg-black/40 border-l-2 border-ag-accent"><strong
+                                    class="text-ag-accent not-italic">Slide 4 → 5:</strong> "Vimos el mapa estratégico.
+                                Bajemos a la física: ¿cómo entrega 10 MW en 200 ms?"</p>
+                            <p class="p-2 bg-black/40 border-l-2 border-ag-warning"><strong
+                                    class="text-ag-warning not-italic">Slide 6 → 7:</strong> "Los supercaps dominan
+                                potencia. Si queremos 8 horas de energía, necesitamos química."</p>
+                            <p class="p-2 bg-black/40 border-l-2 border-ag-green"><strong
+                                    class="text-ag-green not-italic">Slide 9 → 10:</strong> "Eso pasa en los
+                                laboratorios del MIT. ¿Y en Colombia? Les voy a mostrar un dato real."</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Script de navegación -->
+    <!-- Script de navegación y lógica -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // 1. GRID BACKGROUND ANIMATION
+            const canvas = document.getElementById('gridCanvas');
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            let mouseX = 0, mouseY = 0;
+            let targetX = 0, targetY = 0;
+
+            function resize() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            document.addEventListener('mousemove', (e) => {
+                targetX = (e.clientX / width - 0.5) * 60;
+                targetY = (e.clientY / height - 0.5) * 60;
+            });
+
+            function drawGrid() {
+                mouseX += (targetX - mouseX) * 0.05;
+                mouseY += (targetY - mouseY) * 0.05;
+
+                ctx.clearRect(0, 0, width, height);
+                ctx.strokeStyle = 'rgba(0, 229, 255, 0.07)';
+                ctx.lineWidth = 1;
+
+                const gridSize = 60;
+                const offsetX = mouseX % gridSize;
+                const offsetY = mouseY % gridSize;
+
+                ctx.beginPath();
+                for (let x = offsetX; x < width; x += gridSize) {
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, height);
+                }
+                for (let y = offsetY; y < height; y += gridSize) {
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(width, y);
+                }
+                ctx.stroke();
+
+                requestAnimationFrame(drawGrid);
+            }
+            drawGrid();
+
+            // 2. NAVEGACIÓN LATERAL
+            const slider = document.getElementById('slider');
+            const sections = document.querySelectorAll('.slide-section');
+            const dotsContainer = document.getElementById('dots');
+            const dotContainers = [];
+
+            sections.forEach((sec, i) => {
+                const labelText = sec.getAttribute('data-label');
+                if (labelText) {
+                    const dotCont = document.createElement('div');
+                    dotCont.className = `dot-container ${i === 0 ? 'active' : ''}`;
+                    dotCont.innerHTML = `<span class="dot-label">${labelText}</span><div class="dot"></div>`;
+                    dotCont.addEventListener('click', () => slider.scrollTo({ top: sec.offsetTop, behavior: 'smooth' }));
+                    dotsContainer.appendChild(dotCont);
+                    dotContainers.push({ el: dotCont, sec: sec });
+                }
+            });
+
+            // 3. INTERSECTION OBSERVER & COUNT-UP
+            function animateCountUp(el) {
+                if (el.classList.contains('counted')) return;
+                const target = parseFloat(el.getAttribute('data-val'));
+                let start = 0;
+                const duration = 2000; // ms
+                const increment = target / (duration / 16);
+                
+                function update() {
+                    start += increment;
+                    if (start < target) {
+                        el.innerText = Math.floor(start);
+                        requestAnimationFrame(update);
+                    } else {
+                        el.innerText = target;
+                        el.classList.add('counted');
+                    }
+                }
+                update();
+            }
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        
+                        // Update Dots
+                        dotContainers.forEach(item => {
+                            item.el.classList.toggle('active', item.sec === entry.target);
+                        });
+
+                        // Trigger Count-up
+                        const counters = entry.target.querySelectorAll('.count-up');
+                        counters.forEach(animateCountUp);
+                    }
+                });
+            }, { root: slider, threshold: 0.5 });
+
+            sections.forEach(sec => observer.observe(sec));
+
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                const currentIdx = Math.round(slider.scrollTop / window.innerHeight);
+                if (['ArrowDown', 'ArrowRight', ' ', 'PageDown'].includes(e.key)) {
+                    e.preventDefault();
+                    if (currentIdx < sections.length - 1) slider.scrollTo({ top: sections[currentIdx + 1].offsetTop, behavior: 'smooth' });
+                } else if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(e.key)) {
+                    e.preventDefault();
+                    if (currentIdx > 0) slider.scrollTo({ top: sections[currentIdx - 1].offsetTop, behavior: 'smooth' });
+                }
+            });
+
+            // 4. CHART.JS CONFIG
+            Chart.defaults.color = '#A1A1A6';
+            Chart.defaults.font.family = "'Inter', sans-serif";
+
+            // 5. RAGONE CHART
+            const ragoneCtx = document.getElementById('ragoneChart');
+            if (ragoneCtx) {
+                new Chart(ragoneCtx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            {
+                                label: 'Supercondensadores',
+                                data: [{x: 5, y: 10000}, {x: 10, y: 15000}],
+                                backgroundColor: '#00E5FF',
+                                pointRadius: 15,
+                                pointHoverRadius: 20
+                            },
+                            {
+                                label: 'Pseudocaps',
+                                data: [{x: 25, y: 3000}],
+                                backgroundColor: '#0D0E10',
+                                borderColor: '#00E5FF',
+                                borderWidth: 2,
+                                pointRadius: 12,
+                                pointHoverRadius: 15
+                            },
+                            {
+                                label: 'Li-Ion (LFP)',
+                                data: [{x: 160, y: 300}],
+                                backgroundColor: '#FF3B30',
+                                pointRadius: 15,
+                                pointHoverRadius: 20
+                            },
+                            {
+                                label: 'Estado Sólido',
+                                data: [{x: 450, y: 600}],
+                                backgroundColor: '#FFCC00',
+                                pointRadius: 18,
+                                pointHoverRadius: 22
+                            },
+                            {
+                                label: 'Línea de Tendencia (Compromiso)',
+                                type: 'line',
+                                data: [{x: 5, y: 20000}, {x: 20, y: 3000}, {x: 150, y: 500}, {x: 500, y: 100}],
+                                borderColor: 'rgba(255, 255, 255, 0.2)',
+                                borderDash: [5, 5],
+                                pointRadius: 0,
+                                fill: false,
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(10, 10, 12, 0.9)',
+                                titleColor: '#fff',
+                                bodyColor: '#00E5FF',
+                                titleFont: { size: 14, family: "'Roboto Mono', monospace" },
+                                callbacks: {
+                                    label: (context) => `Energía: ${context.parsed.x} Wh/kg | Potencia: ${context.parsed.y} W/kg`
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'logarithmic',
+                                title: { display: true, text: 'Densidad de Energía (Wh/kg)', color: '#A1A1A6' },
+                                grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                            },
+                            y: {
+                                type: 'logarithmic',
+                                title: { display: true, text: 'Densidad de Potencia (W/kg)', color: '#A1A1A6' },
+                                grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 6. RADAR CHART
+            const radarCtx = document.getElementById('radarChart');
+            if (radarCtx) {
+                new Chart(radarCtx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Dens. Energía', 'Potencia', 'Ciclos Vida', 'Costo', 'Seguridad Térmica', 'Operación Extrema'],
+                        datasets: [
+                            {
+                                label: 'Na-Ion (Sodio)',
+                                data: [60, 70, 70, 95, 90, 100],
+                                backgroundColor: 'rgba(52, 199, 89, 0.2)',
+                                borderColor: '#34C759',
+                                pointBackgroundColor: '#34C759',
+                                borderWidth: 2
+                            },
+                            {
+                                label: 'Li-Ion (LFP)',
+                                data: [70, 60, 80, 70, 80, 40],
+                                backgroundColor: 'rgba(255, 59, 48, 0.2)',
+                                borderColor: '#FF3B30',
+                                pointBackgroundColor: '#FF3B30',
+                                borderWidth: 2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                                pointLabels: { color: '#00E5FF', font: { family: "'Roboto Mono', monospace", size: 10 } },
+                                ticks: { display: false, min: 0, max: 100 }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: '#fff', font: { family: "'Roboto Mono', monospace" } }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 7. SIMULADOR INDUCTOR (FRECUENCIA)
+            const freqSlider = document.getElementById('freqSlider');
+            const freqValue = document.getElementById('freqValue');
+            const inductorSize = document.getElementById('inductorSize');
+            const inductorGraphic = document.getElementById('inductorGraphic');
+            const currentFlow = document.getElementById('currentFlow');
+            const s1Switch = document.getElementById('s1-switch');
+            const s2Switch = document.getElementById('s2-switch');
+
+            if (freqSlider) {
+                freqSlider.addEventListener('input', (e) => {
+                    const val = parseFloat(e.target.value);
+                    freqValue.textContent = val < 1 ? Math.round(val * 1000) + ' kHz' : val.toFixed(1) + ' MHz';
+                    
+                    const sizePct = Math.round(100 - ((val - 0.1) / 4.9) * 80); 
+                    inductorSize.textContent = sizePct + '%';
+                    inductorGraphic.style.transform = `translate(-50%, -50%) scale(${sizePct / 100})`;
+                    
+                    const animDuration = 1.1 - (val / 5);
+                    currentFlow.style.animationDuration = `${animDuration}s`;
+                    
+                    if (val > 2) {
+                        s1Switch.textContent = 'S1 (GaN) ▲';
+                        s2Switch.textContent = 'S2 (GaN) ▼';
+                        s1Switch.classList.replace('text-white', 'text-ag-accent');
+                    } else {
+                        s1Switch.textContent = 'S1 (SiC) ▲';
+                        s2Switch.textContent = 'S2 (SiC) ▼';
+                        s1Switch.classList.replace('text-ag-accent', 'text-white');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>
