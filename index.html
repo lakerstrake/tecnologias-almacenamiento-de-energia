@@ -14,8 +14,8 @@
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
 
-    <!-- Tailwind -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind v3.4.17 + Custom Config -->
+    <script src="https://cdn.tailwindcss.com?3.4.17"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -29,196 +29,898 @@
                         ag: {
                             base: '#050505',
                             panel: '#0a0a0a',
-                            accent: '#00E5FF',  /* Electric Blue */
-                            warning: '#FF3B30', /* Performance Red/Orange */
-                            green: '#34C759',   /* Eco Green */
-                            yellow: '#FFCC00'   /* High Voltage Yellow */
+                            accent: '#00E5FF',
+                            warning: '#FF3B30',
+                            green: '#34C759',
+                            yellow: '#FFCC00'
                         }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
+                        'shimmer': 'shimmer 3s infinite',
+                        'ticker': 'ticker 35s linear infinite',
+                        'gradient': 'gradientShift 4s ease infinite',
+                        'border-glow': 'borderGlow 3s linear infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+                            '25%': { transform: 'translateY(-8px) rotate(0.5deg)' },
+                            '50%': { transform: 'translateY(-15px) rotate(0deg)' },
+                            '75%': { transform: 'translateY(-8px) rotate(-0.5deg)' }
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: 1, boxShadow: '0 0 20px rgba(0,229,255,0.5)' },
+                            '50%': { opacity: 0.8, boxShadow: '0 0 40px rgba(0,229,255,0.8)' }
+                        },
+                        shimmer: {
+                            '0%': { left: '-100%' },
+                            '100%': { left: '100%' }
+                        },
+                        gradientShift: {
+                            '0%, 100%': { backgroundPosition: '0% 50%' },
+                            '50%': { backgroundPosition: '100% 50%' }
+                        },
+                        borderGlow: {
+                            '0%': { backgroundPosition: '0% 50%' },
+                            '50%': { backgroundPosition: '100% 50%' },
+                            '100%': { backgroundPosition: '0% 50%' }
+                        }
+                    },
+                    backdropBlur: {
+                        xs: '2px'
+                    },
+                    spacing: {
+                        '18': '4.5rem',
+                        '22': '5.5rem',
                     }
                 }
             }
         }
     </script>
-
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@500;700;900&display=swap" rel="stylesheet">
     
-    <!-- Reveal.js -->
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
+    <!-- Google Fonts (optimized) -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400&family=Space+Grotesk:wght@700;900&display=swap" as="style">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400&family=Space+Grotesk:wght@700;900&display=swap" rel="stylesheet">
+    
+    <!-- Reveal.js (core only, no theme - we provide our own dark theme) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/reset.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/reveal.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/theme/black.min.css">
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Three.js & Vanta.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.net.min.js"></script>
 
     <!-- GSAP (Advanced Animations) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
     <style>
+        /* ── Core Variables ── */
         :root {
-            --r-main-font: 'Inter', sans-serif;
-            --r-heading-font: 'Space Grotesk', sans-serif;
-            --r-heading-text-transform: none;
-            --r-background-color: transparent;
-            --r-main-color: #F5F5F7;
-            --r-selection-background-color: #00E5FF;
             --nav-height: 60px;
             --ticker-height: 40px;
             --total-fixed-height: calc(var(--nav-height) + var(--ticker-height));
+            --glass-bg: linear-gradient(135deg, rgba(20, 20, 25, 0.65) 0%, rgba(10, 10, 12, 0.45) 100%);
+            --accent: #00E5FF;
+            --success: #34C759;
+            --warning: #FF3B30;
+            --yellow: #FFCC00;
+            /* Override Reveal.js theme variables */
+            --r-background-color: transparent;
+            --r-main-font: 'Inter', sans-serif;
+            --r-main-font-size: 20px;
+            --r-main-color: #e0e0e5;
+            --r-heading-font: 'Space Grotesk', sans-serif;
+            --r-heading-color: #fff;
+            --r-heading-text-transform: none;
+            --r-heading-font-weight: 800;
+            --r-heading-letter-spacing: -0.03em;
+            --r-link-color: #00E5FF;
+            --r-link-color-hover: #34C759;
+            --r-selection-background-color: rgba(0, 229, 255, 0.4);
+            --r-block-margin: 12px;
         }
 
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #050505;
-            overflow: hidden;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            text-rendering: optimizeLegibility;
-        }
+        /* ── FORCE DARK BACKGROUND ── */
+        html, body { background-color: #050505 !important; color: #e0e0e5; }
+        body { overflow: hidden; font-family: 'Inter', sans-serif; }
 
-        /* Slide viewport: exactly between nav bar and ticker */
-        .reveal-viewport, .reveal {
-            height: calc(100vh - var(--total-fixed-height)) !important;
-            margin-top: var(--nav-height) !important;
+        /* Override Reveal viewport — transparent so Vanta shows through */
+        html body.reveal-viewport,
+        body.reveal-viewport,
+        .reveal-viewport,
+        .reveal-viewport .reveal,
+        .reveal {
             background: transparent !important;
             background-color: transparent !important;
         }
 
+        /* Fill ALL available space between nav and ticker */
+        .reveal-viewport {
+            position: fixed !important;
+            top: var(--nav-height) !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: var(--ticker-height) !important;
+            width: 100% !important;
+            height: calc(100vh - var(--total-fixed-height)) !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .reveal {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* Make slides fill the full slide area */
+        .reveal .slides {
+            width: 100% !important;
+            height: 100% !important;
+            top: 0 !important;
+            left: 0 !important;
+        }
+        .reveal .slides > section {
+            width: 100% !important;
+            height: 100% !important;
+            padding: 1.5rem 2rem !important;
+            box-sizing: border-box !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            overflow: hidden !important;
+        }
+
+        /* Vanta background container */
         #vanta-bg {
             position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
             z-index: -1;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
             opacity: 0.8;
-            will-change: transform;
+            background-color: #050505;
         }
 
-        /* ── Glass Panel ── */
+        /* Glass Panel - Optimized */
         .glass-panel {
-            background: rgba(10, 10, 12, 0.45);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 2rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(28px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5), 0 0 80px -20px rgba(0,229,255,0.15), inset 0 1px 0 rgba(255,255,255,0.08);
+            border-radius: 20px;
             position: relative;
             overflow: hidden;
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
-            contain: layout style;
+            transition: all 0.5s cubic-bezier(0.16,1,0.3,1);
         }
-        @supports not (backdrop-filter: blur(24px)) {
-            .glass-panel { background: rgba(10, 10, 12, 0.85); }
-        }
-        .glass-panel:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 40px 80px rgba(0, 229, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            border-color: rgba(0, 229, 255, 0.3);
-        }
-        .glass-panel::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; height: 100%;
-            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
-            pointer-events: none;
-        }
+        .glass-panel:hover { transform: translateY(-4px) scale(1.01); border-color: rgba(0,229,255,0.25); }
+        .glass-panel::after { content:''; position:absolute; top:0; inset:0; height:1px; background:linear-gradient(90deg,transparent,rgba(0,229,255,0.3),transparent); opacity:0.5; }
 
-        .silver-text {
-            background: linear-gradient(180deg, #FFFFFF 0%, #A1A1A6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        /* Gradients */
+        .silver-text { 
+            background: linear-gradient(180deg,#FFF 0%,#C0C0C5 50%,#A1A1A6 100%); 
+            -webkit-background-clip:text; 
+            -webkit-text-fill-color:transparent; 
         }
+        
         .gradient-heading {
-            background: linear-gradient(90deg, #FFFFFF 0%, #00E5FF 100%);
+            background: linear-gradient(135deg, #FFFFFF 0%, #00E5FF 50%, #34C759 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            background-size: 200% 200%;
+            animation: gradientShift 4s ease infinite;
+            text-shadow: 0 0 60px rgba(0, 229, 255, 0.4);
+            filter: drop-shadow(0 0 20px rgba(0, 229, 255, 0.3));
         }
 
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* Tech data */
         .tech-data {
             font-family: 'JetBrains Mono', monospace;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.08em;
+            font-size: 0.85em;
+            opacity: 0.9;
         }
 
-        /* ── Reveal overrides ── */
+        /* ── Typography enhancements ── */
         .reveal .slides { text-align: left; }
-        .reveal h1, .reveal h2, .reveal h3 { margin-bottom: 1.5rem; font-weight: 800; letter-spacing: -0.03em; }
-        .reveal p, .reveal li, .reveal td, .reveal th { font-size: 1.1rem; line-height: 1.6; color: #A1A1A6; }
-        .reveal strong { color: #FFF; font-weight: 600; }
+        .reveal h1, .reveal h2, .reveal h3 { 
+            margin-bottom: 1.5rem; 
+            font-weight: 800; 
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+        }
+        .reveal p, .reveal li, .reveal td, .reveal th { 
+            font-size: 1.15rem; 
+            line-height: 1.7; 
+            color: #B8B8BD;
+            font-weight: 400;
+        }
+        .reveal strong { 
+            color: #FFF; 
+            font-weight: 600;
+            background: linear-gradient(120deg, rgba(0,229,255,0.15) 0%, rgba(0,229,255,0.05) 100%);
+            padding: 0.1em 0.3em;
+            border-radius: 4px;
+        }
         .reveal h1 { font-size: clamp(2.5rem, 6vw, 5rem); line-height: 1.1; }
         .reveal h2 { font-size: clamp(2rem, 4vw, 3.5rem); }
-        .reveal .progress { height: 5px !important; background: rgba(255,255,255,0.05) !important; }
+        .reveal h3 { font-size: clamp(1.5rem, 3vw, 2.5rem); }
+        .reveal .progress { 
+            height: 4px !important; 
+            background: rgba(255,255,255,0.03) !important;
+            backdrop-filter: blur(4px);
+        }
         .reveal .progress span { 
-            background: linear-gradient(90deg, #00E5FF, #34C759) !important; 
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.8);
+            background: linear-gradient(90deg, #00E5FF 0%, #34C759 50%, #00E5FF 100%) !important;
+            background-size: 200% 100% !important;
+            animation: progressGlow 2s ease-in-out infinite !important;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.6), 0 0 30px rgba(0, 229, 255, 0.3);
             border-radius: 0 4px 4px 0;
         }
-        .reveal .slide-background { background: transparent !important; }
-        .reveal ul, .reveal ol { display: block; }
+        @keyframes progressGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        .reveal .slide-background,
+        .reveal .slide-background-content { background: transparent !important; background-color: transparent !important; }
+        .reveal ul, .reveal ol { display: block; padding-left: 1.5em; }
+        .reveal ul { list-style: none; }
+        .reveal ul li::marker { 
+            content: '▸'; 
+            color: #00E5FF; 
+            font-size: 0.8em;
+        }
+        .reveal ol { counter-reset: item; }
+        .reveal ol li { 
+            display: block;
+            counter-increment: item;
+        }
+        .reveal ol li::before { 
+            content: counter(item) "."; 
+            color: #00E5FF;
+            font-weight: 700;
+            margin-right: 0.5em;
+        }
+        .reveal blockquote {
+            border-left: 4px solid #00E5FF;
+            padding-left: 1.5rem;
+            margin: 1.5rem 0;
+            font-style: italic;
+            background: rgba(0, 229, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 0 16px 16px 0;
+        }
 
-        /* ── Floating animation ── */
+        /* Animations - Using Tailwind config */
         .animate-float { animation: float 6s ease-in-out infinite; will-change: transform; }
-        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-15px); } }
+        .animate-glow { animation: pulseGlow 2s ease-in-out infinite; }
+        .animate-shimmer { animation: shimmer 3s infinite; }
         
-        /* ── Moving electrons ── */
-        .moving-electrons { position: absolute; inset: 0; pointer-events: none; overflow: hidden; border-radius: inherit; }
-        .electron { position: absolute; width: 4px; height: 4px; background: #00E5FF; border-radius: 50%; box-shadow: 0 0 15px 3px #00E5FF; }
-        .e1 { top: 20%; left: -10%; animation: flowRight 4s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
-        .e2 { top: 50%; left: -10%; animation: flowRight 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite 1s; background: #FFCC00; box-shadow: 0 0 15px 3px #FFCC00; }
-        .e3 { top: 80%; left: -10%; animation: flowRight 5s cubic-bezier(0.4, 0, 0.2, 1) infinite 0.5s; background: #34C759; box-shadow: 0 0 15px 3px #34C759; }
-        @keyframes flowRight { 0% { left: -10%; opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { left: 110%; opacity: 0; } }
-
-        /* ── Navigation bar ── */
-        .ag-nav { 
-            position: fixed; top: 0; left: 0; width: 100%; height: var(--nav-height); z-index: 1000; 
-            display: flex; align-items: center; padding: 0 2rem; 
-            background: linear-gradient(to bottom, rgba(5,5,5,0.95) 0%, rgba(5,5,5,0.5) 80%, transparent 100%); 
-            border-bottom: 1px solid rgba(255,255,255,0.05); 
-            pointer-events: auto;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-        .ag-nav * { pointer-events: auto; }
+        /* Glow effects */
+        .glow-cyan { box-shadow: 0 0 30px -5px rgba(0,229,255,0.5), 0 0 60px -20px rgba(0,229,255,0.3); }
+        .glow-text-cyan { text-shadow: 0 0 20px rgba(0,229,255,0.8), 0 0 40px rgba(0,229,255,0.4); }
+        .glow-border::after { content:''; position:absolute; inset:-2px; background:linear-gradient(45deg,#00E5FF,#34C759,#FFCC00); background-size:400% 400%; border-radius:inherit; z-index:-1; opacity:0; animation:borderGlow 3s linear infinite; filter:blur(8px); }
+        .glow-border:hover::after { opacity: 0.5; }
         
-        /* ── Ticker ── */
-        .ticker-wrap { 
-            width: 100%; overflow: hidden; position: fixed; bottom: 0; left: 0; 
-            height: var(--ticker-height); background: rgba(5,5,5,0.95); 
-            border-top: 1px solid rgba(255,255,255,0.1); z-index: 1000; 
-            display: flex; align-items: center;
+        /* Electrons */
+        .moving-electrons { position:absolute; inset:0; pointer-events:none; overflow:hidden; border-radius:inherit; }
+        .electron { position:absolute; width:4px; height:4px; background:#00E5FF; border-radius:50%; box-shadow:0 0 15px 3px #00E5FF; }
+        .e1 { top:20%; animation:flowRight 4s cubic-bezier(0.4,0,0.2,1) infinite; }
+        .e2 { top:50%; animation:flowRight 3.5s cubic-bezier(0.4,0,0.2,1) infinite 1s; background:#FFCC00; box-shadow:0 0 15px 3px #FFCC00; }
+        .e3 { top:80%; animation:flowRight 5s cubic-bezier(0.4,0,0.2,1) infinite 0.5s; background:#34C759; box-shadow:0 0 15px 3px #34C759; }
+        @keyframes flowRight { 0%{left:-10%;opacity:0} 20%{opacity:1} 80%{opacity:1} 100%{left:110%;opacity:0} }
+        @keyframes panelShine { 0%{transform:skewX(-15deg) translateX(-100%)} 100%{transform:skewX(-15deg) translateX(100%)} }
+
+        /* Nav & Ticker */
+        .ag-nav { position:fixed; top:0; inset-x:0; height:var(--nav-height); z-index:1000; display:flex; align-items:center; padding:0 2rem; background:linear-gradient(to bottom,rgba(8,8,12,0.98),rgba(8,8,12,0.3)); border-bottom:1px solid rgba(255,255,255,0.06); backdrop-filter:blur(12px); }
+        .ag-nav::after { content:''; position:absolute; bottom:0; inset-x:0; height:1px; background:linear-gradient(90deg,transparent,rgba(0,229,255,0.4),transparent); opacity:0.6; }
+        .ticker-wrap { position:fixed; bottom:0; inset-x:0; height:var(--ticker-height); background:rgba(8,8,12,0.98); border-top:1px solid rgba(255,255,255,0.06); z-index:1000; display:flex; align-items:center; backdrop-filter:blur(10px); }
+        .ticker-content { display:flex; white-space:nowrap; }
+        .ticker-content.animate { animation:ticker 35s linear infinite; }
+        .ticker-item { display:inline-block; padding:0 2.5rem; font-size:12px; color:#00E5FF; font-weight:600; letter-spacing:0.8px; position:relative; }
+        .ticker-item::after{content:'//';margin-left:12px;color:rgba(0,229,255,0.4)}
+        .ticker-item span{color:#A1A1A6;font-weight:400;margin-left:8px;font-size:11px}
+        @keyframes ticker{0%{transform:translate3d(0,0,0)}100%{transform:translate3d(-50%,0,0)}}
+
+        /* Scrollbar */
+        ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:rgba(5,5,5,0.5)}::-webkit-scrollbar-thumb{background:rgba(0,229,255,0.3);border-radius:10px}::-webkit-scrollbar-thumb:hover{background:rgba(0,229,255,0.6)}
+        *{scrollbar-width:thin;scrollbar-color:rgba(0,229,255,0.3) rgba(5,5,5,0.5)}
+
+        /* Tables */
+        .reveal table{width:100%;border-collapse:separate;border-spacing:0;font-size:0.9em}
+        .reveal th{background:linear-gradient(180deg,rgba(0,229,255,0.15),rgba(0,229,255,0.05));color:#00E5FF;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;font-size:0.8em;padding:1rem 1.25rem;text-align:left;border-bottom:2px solid rgba(0,229,255,0.3)}
+        .reveal th:first-child{border-radius:12px 0 0 0}.reveal th:last-child{border-radius:0 12px 0 0}
+        .reveal td{padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.05);transition:all 0.3s ease}
+        .reveal tr:hover td{background:rgba(0,229,255,0.05);color:#FFF}
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35em 0.75em;
+            font-size: 0.75em;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            border-radius: 6px;
+            border: 1px solid;
         }
-        .ticker-content { display: flex; white-space: nowrap; will-change: transform; }
-        .ticker-content.animate { animation: ticker 40s linear infinite; }
-        .ticker-item { 
-            display: inline-block; padding: 0 2rem; 
-            font-family: 'Inter', sans-serif; font-size: 13px; color: #00E5FF; 
-            font-weight: 700; letter-spacing: 0.5px; flex-shrink: 0; 
+        .badge-cyan {
+            background: rgba(0,229,255,0.1);
+            border-color: rgba(0,229,255,0.3);
+            color: #00E5FF;
         }
-        .ticker-item span { color: #A1A1A6; font-weight: 400; margin-left: 6px; }
-        @keyframes ticker { 
-            0% { transform: translate3d(0, 0, 0); } 
-            100% { transform: translate3d(-50%, 0, 0); } 
+        .badge-green {
+            background: rgba(52,199,89,0.1);
+            border-color: rgba(52,199,89,0.3);
+            color: #34C759;
+        }
+        .badge-yellow {
+            background: rgba(255,204,0,0.1);
+            border-color: rgba(255,204,0,0.3);
+            color: #FFCC00;
+        }
+        .badge-red {
+            background: rgba(255,59,48,0.1);
+            border-color: rgba(255,59,48,0.3);
+            color: #FF3B30;
         }
 
-        /* ── Custom Scrollbar ── */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: rgba(5, 5, 5, 0.5); }
-        ::-webkit-scrollbar-thumb { background: rgba(0, 229, 255, 0.3); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(0, 229, 255, 0.6); }
-        * { scrollbar-width: thin; scrollbar-color: rgba(0, 229, 255, 0.3) rgba(5, 5, 5, 0.5); }
+        /* ── Stat Cards ── */
+        .stat-card {
+            position: relative;
+            background: linear-gradient(135deg, rgba(20,20,25,0.8) 0%, rgba(10,10,12,0.6) 100%);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 1.5rem;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, #00E5FF, #34C759);
+        }
+        .stat-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 3rem;
+            font-weight: 900;
+            line-height: 1;
+            background: linear-gradient(135deg, #FFF 0%, #00E5FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stat-label {
+            font-size: 0.85rem;
+            color: #86868B;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 0.5rem;
+        }
+        .stat-card.accent .stat-value {
+            background: linear-gradient(135deg, #FFF 0%, #00E5FF 100%);
+        }
+        .stat-card.success .stat-value {
+            background: linear-gradient(135deg, #FFF 0%, #34C759 100%);
+        }
+        .stat-card.warning .stat-value {
+            background: linear-gradient(135deg, #FFF 0%, #FFCC00 100%);
+        }
+        .stat-card.danger .stat-value {
+            background: linear-gradient(135deg, #FFF 0%, #FF3B30 100%);
+        }
 
-        /* ── Grid enhancements ── */
-        .tech-grid-border { border-left: 3px solid; padding-left: 1rem; box-shadow: inset 10px 0 20px -10px currentColor; }
+        /* Code, Images, Cards */
+        .reveal pre{background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:1.25rem;font-size:0.85em;overflow-x:auto}
+        .reveal code{font-family:'JetBrains Mono',monospace;color:#00E5FF}
+        .icon-box{display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,rgba(0,229,255,0.15),rgba(0,229,255,0.05));border:1px solid rgba(0,229,255,0.2);transition:all 0.3s ease}
+        .icon-box:hover{transform:scale(1.1);box-shadow:0 0 20px rgba(0,229,255,0.4)}
+        .icon-box svg{width:24px;height:24px;stroke:#00E5FF}
+        .reveal img{border-radius:16px;transition:all 0.4s cubic-bezier(0.16,1,0.3,1)}
+        .reveal img:hover{transform:scale(1.02);filter:brightness(1.1) contrast(1.05);box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+        .card-grid{display:grid;gap:1.5rem}
+        .card-grid-2{grid-template-columns:repeat(2,1fr)}.card-grid-3{grid-template-columns:repeat(3,1fr)}
+        @media(max-width:768px){.card-grid-2,.card-grid-3{grid-template-columns:1fr}}
+
+        /* ── Accent borders ── */
+        .accent-border-left {
+            border-left: 4px solid #00E5FF;
+            padding-left: 1.5rem;
+            background: linear-gradient(90deg, rgba(0,229,255,0.05) 0%, transparent 100%);
+        }
+        .accent-border-right {
+            border-right: 4px solid #34C759;
+            padding-right: 1.5rem;
+            background: linear-gradient(-90deg, rgba(52,199,89,0.05) 0%, transparent 100%);
+            text-align: right;
+        }
+
+        /* ── Highlight box ── */
+        .highlight-box {
+            position: relative;
+            background: linear-gradient(135deg, rgba(0,229,255,0.08) 0%, rgba(0,0,0,0) 100%);
+            border: 1px solid rgba(0,229,255,0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        .highlight-box::before {
+            content: '▸';
+            position: absolute;
+            left: 1rem;
+            top: 1rem;
+            color: #00E5FF;
+            font-size: 1.2rem;
+        }
+
+        /* ── Number highlight ── */
+        .number-highlight {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 900;
+            font-size: 4rem;
+            line-height: 1;
+            background: linear-gradient(135deg, #FFF 0%, #00E5FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .number-highlight.green {
+            background: linear-gradient(135deg, #FFF 0%, #34C759 100%);
+            -webkit-background-clip: text;
+        }
+        .number-highlight.yellow {
+            background: linear-gradient(135deg, #FFF 0%, #FFCC00 100%);
+            -webkit-background-clip: text;
+        }
+        .number-highlight.red {
+            background: linear-gradient(135deg, #FFF 0%, #FF3B30 100%);
+            -webkit-background-clip: text;
+        }
+
+        /* ── Pulse animation for emphasis ── */
+        .pulse-emphasis {
+            animation: pulseEm 2s ease-in-out infinite;
+        }
+        @keyframes pulseEm {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* ── Shimmer effect for cards ── */
+        .shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+        .shimmer::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* ── Progress bars ── */
+        .progress-bar {
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00E5FF, #34C759);
+            border-radius: 4px;
+            transition: width 1s ease-out;
+        }
+
+        /* ── Divider lines ── */
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            margin: 2rem 0;
+        }
+        .divider-accent {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00E5FF, transparent);
+        }
+
+        /* ── Slide transitions ── */
+        .reveal .slides section.fragment {
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        .reveal .slides section.fragment.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .reveal .slides section.fragment:not(.visible) {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        /* ── Focus states ── */
+        a:focus, button:focus {
+            outline: 2px solid #00E5FF;
+            outline-offset: 2px;
+        }
+
+        /* ── Space Optimization Layouts ── */
+        
+        /* Full viewport slides */
+        .slide-full {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* ── SPACING OPTIMIZATION ── */
+        
+        /* Slide section - padding is handled by our main CSS override above */
+        /* .reveal .slides section already has padding: 1.5rem 2rem from our rule */
+        
+        /* Slide content wrapper - maximize space */
+        .slide-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* Full bleed - use entire slide */
+        .slide-fullbleed {
+            width: 100%;
+            height: 100%;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+        
+        /* Tighter vertical rhythm */
+        .reveal h1 { margin-top: 0; margin-bottom: 1rem; }
+        .reveal h2 { margin-top: 0; margin-bottom: 0.75rem; }
+        .reveal h3 { margin-top: 0; margin-bottom: 0.5rem; }
+        .reveal p { margin-top: 0; margin-bottom: 0.75rem; }
+        .reveal ul, .reveal ol { margin-top: 0; margin-bottom: 0.75rem; }
+        .reveal li { margin-bottom: 0.5rem; }
+        
+        /* Reduce glass-panel spacing */
+        .glass-panel {
+            padding: 1.25rem;
+            margin-bottom: 0;
+        }
+        
+        /* Compact grid gap */
+        .gap-2 { gap: 0.5rem; }
+        .gap-3 { gap: 0.75rem; }
+        .gap-4 { gap: 1rem; }
+        .gap-6 { gap: 1.25rem; }
+        
+        /* Maximize content width */
+        .max-w-none { max-width: none !important; }
+        .max-w-lg { max-width: 32rem !important; }
+        .max-w-xl { max-width: 36rem !important; }
+        .max-w-2xl { max-width: 42rem !important; }
+        .max-w-3xl { max-width: 48rem !important; }
+        .max-w-4xl { max-width: 56rem !important; }
+        .max-w-5xl { max-width: 64rem !important; }
+        .max-w-6xl { max-width: 72rem !important; }
+        .max-w-7xl { max-width: 80rem !important; }
+        
+        /* Use full width on large screens */
+        @media (min-width: 1024px) {
+            .lg\:max-w-none { max-width: none !important; }
+            .lg\:w-full { width: 100% !important; }
+        }
+        
+        /* Flex grow utilities */
+        .flex-1 { flex: 1 1 0%; }
+        .flex-auto { flex: 1 1 auto; }
+        .flex-initial { flex: 0 1 auto; }
+        
+        /* Aspect ratio boxes */
+        .aspect-video { aspect-ratio: 16 / 9; }
+        .aspect-square { aspect-ratio: 1 / 1; }
+        .aspect-4-3 { aspect-ratio: 4 / 3; }
+        
+        /* Object fit utilities */
+        .object-cover { object-fit: cover; }
+        .object-contain { object-fit: contain; }
+        
+        /* Overflow control */
+        .overflow-hidden { overflow: hidden; }
+        .overflow-auto { overflow: auto; }
+        .overflow-visible { overflow: visible; }
+        
+        /* Content alignment */
+        .content-start { align-content: flex-start; }
+        .content-center { align-content: center; }
+        .content-end { align-content: flex-end; }
+        
+        /* Relative sizing */
+        .h-full { height: 100%; }
+        .min-h-screen { min-height: 100vh; }
+        .h-auto { height: auto; }
+        
+        /* Text alignment */
+        .text-left { text-align: left; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        
+        /* Whitespace */
+        .whitespace-nowrap { white-space: nowrap; }
+        .whitespace-normal { white-space: normal; }
+        
+        /* Truncate text */
+        .truncate {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        /* Cursor */
+        .cursor-pointer { cursor: pointer; }
+        .cursor-default { cursor: default; }
+        
+        /* Visibility */
+        .visible { visibility: visible; }
+        .invisible { visibility: hidden; }
+        
+        /* Z-index */
+        .z-0 { z-index: 0; }
+        .z-10 { z-index: 10; }
+        .z-20 { z-index: 20; }
+        .z-30 { z-index: 30; }
+        .z-40 { z-index: 40; }
+        .z-50 { z-index: 50; }
+        
+        /* Compact slide - less vertical padding */
+        .slide-compact {
+            padding: 1rem 0;
+        }
+        
+        /* Dense layout - more content per slide */
+        .layout-dense .glass-panel {
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+        .layout-dense h2 { margin-bottom: 1rem !important; }
+        .layout-dense p { font-size: 1rem !important; line-height: 1.5 !important; }
+        .layout-dense li { font-size: 0.95rem !important; line-height: 1.4 !important; }
+        
+        /* Two column equal split */
+        .layout-split-50-50 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        /* Left sidebar - 35% / 65% */
+        .layout-sidebar-left {
+            display: grid;
+            grid-template-columns: 35% 65%;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        /* Right sidebar - 65% / 35% */
+        .layout-sidebar-right {
+            display: grid;
+            grid-template-columns: 65% 35%;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        /* Three column - equal */
+        .layout-triplet {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+        
+        /* Four column */
+        .layout-quad {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+        
+        /* Card wall - many small cards */
+        .layout-card-wall {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        /* Hero section - centered big content */
+        .layout-hero {
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .layout-hero h1 { font-size: clamp(3rem, 8vw, 6rem) !important; }
+        .layout-hero p { font-size: 1.5rem !important; }
+        
+        /* Stats row - horizontal stats */
+        .stats-row {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .stats-row .stat-card {
+            min-width: 150px;
+            flex: 1;
+            max-width: 220px;
+            text-align: center;
+        }
+        
+        /* Timeline layout */
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+            border-left: 2px solid rgba(0,229,255,0.3);
+        }
+        .timeline-item {
+            position: relative;
+            padding-bottom: 1.5rem;
+            padding-left: 1.5rem;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -2.4rem;
+            top: 0.3rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #00E5FF;
+            box-shadow: 0 0 10px rgba(0,229,255,0.5);
+        }
+        
+        /* Checklist layout */
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .checklist li::before {
+            content: '✓';
+            color: #34C759;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        /* Numbered list large */
+        .numbered-list {
+            list-style: none;
+            counter-reset: num;
+            padding: 0;
+        }
+        .numbered-list li {
+            counter-increment: num;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+        }
+        .numbered-list li::before {
+            content: counter(num);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #00E5FF 0%, rgba(0,229,255,0.3) 100%);
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        
+        /* Icon with text row */
+        .icon-text-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+        }
+        .icon-text-row .icon-box {
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+        }
+        
+        /* Compact margin utilities */
+        .mb-tight { margin-bottom: 0.5rem !important; }
+        .mb-sm { margin-bottom: 1rem !important; }
+        .mb-md { margin-bottom: 1.5rem !important; }
+        .mb-lg { margin-bottom: 2rem !important; }
+        
+        /* No margin bottom */
+        .mb-0 { margin-bottom: 0 !important; }
+        
+        /* Tighter spacing between elements */
+        .space-tight > * + * { margin-top: 0.75rem; }
+        .space-normal > * + * { margin-top: 1.25rem; }
+        
+        /* Full width utilities */
+        .w-full { width: 100%; }
+        .w-auto { width: auto; }
+        
+        /* Text size utilities */
+        .text-xs { font-size: 0.75rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-base { font-size: 1rem; }
+        .text-lg { font-size: 1.125rem; }
+        .text-xl { font-size: 1.25rem; }
+        .text-2xl { font-size: 1.5rem; }
+        .text-3xl { font-size: 1.875rem; }
+        .text-4xl { font-size: 2.25rem; }
+        
+        /* Flex utilities */
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .flex-wrap { flex-wrap: wrap; }
+        .items-center { align-items: center; }
+        .items-start { align-items: flex-start; }
+        .items-stretch { align-items: stretch; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .justify-end { justify-content: flex-end; }
+        .gap-1 { gap: 0.25rem; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-3 { gap: 0.75rem; }
+        .gap-4 { gap: 1rem; }
+        .gap-6 { gap: 1.5rem; }
+        
+        /* Grid area utilities */
+        .grid { display: grid; }
+        .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+        .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        
+        /* ── Mobile optimizations ── */
+        @media (max-width: 768px) {
+            .reveal h1 { font-size: 2rem; }
+            .reveal h2 { font-size: 1.5rem; }
+            .reveal p, .reveal li { font-size: 1rem; }
+            .glass-panel { padding: 1.25rem; border-radius: 16px; }
+            .stat-value { font-size: 2rem; }
+            .ticker-item { font-size: 11px; padding: 0 1rem; }
+            .layout-split-50-50,
+            .layout-sidebar-left,
+            .layout-sidebar-right,
+            .layout-triplet,
+            .layout-quad { grid-template-columns: 1fr; }
+            .stats-row { flex-direction: column; }
+            .stats-row .stat-card { max-width: 100%; }
+        }
 
         /* ── Reduced motion ── */
         @media (prefers-reduced-motion: reduce) {
@@ -243,17 +945,34 @@
 
     <div class="ag-nav">
         <div class="flex items-center gap-3">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00E5FF" stroke-width="2">
-                <path d="M12 2L2 22h20L12 2z" />
-                <path d="M12 10v6" />
-            </svg>
-            <div class="font-display font-bold text-white tracking-[0.2em] text-sm uppercase silver-text">
-                AntiGraviti <span class="text-slate-500 font-light tracking-normal ml-2">Energy Storage</span>
+            <div class="relative">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00E5FF" stroke-width="1.5">
+                    <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" fill="rgba(0,229,255,0.1)" />
+                    <polygon points="12,6 18,10 18,14 12,18 6,14 6,10" fill="#00E5FF" opacity="0.8" />
+                    <circle cx="12" cy="12" r="2" fill="#FFF" />
+                </svg>
+                <div class="absolute -top-1 -right-1 w-2 h-2 bg-ag-accent rounded-full animate-ping"></div>
+            </div>
+            <div class="font-display font-bold text-white tracking-[0.15em] text-sm uppercase">
+                <span class="gradient-heading">AntiGraviti</span>
+                <span class="text-slate-500 font-light tracking-normal ml-2 hidden sm:inline">Energy Storage</span>
             </div>
         </div>
-        <div class="ml-auto flex gap-6 lg:p-6 text-[11px] text-slate-400 font-mono items-center">
-            <span class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-ag-accent animate-pulse"></div> SYS_ONLINE</span>
-            <span class="px-2 py-1 bg-white/5 border border-white/10 rounded">MODE: PRESENTATION</span>
+        <div class="ml-auto flex gap-4 lg:gap-6 text-[10px] text-slate-400 font-mono items-center">
+            <span class="hidden md:flex items-center gap-2">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-ag-accent opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-ag-accent"></span>
+                </span>
+                <span class="text-ag-accent font-semibold">SYS_ONLINE</span>
+            </span>
+            <span class="px-2 py-1.5 bg-white/5 border border-white/10 rounded-md backdrop-blur-sm">
+                <span class="text-slate-500">MODE:</span> <span class="text-white font-medium">PRESENTATION</span>
+            </span>
+            <span class="hidden lg:inline-flex items-center gap-2 px-2 py-1 bg-ag-accent/10 border border-ag-accent/20 rounded-md">
+                <svg class="w-3 h-3" fill="none" stroke="#00E5FF" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <span class="text-ag-accent">PWR: 100%</span>
+            </span>
         </div>
     </div>
 
@@ -279,93 +998,102 @@
 
             <!-- 01: PORTADA -->
             <section data-auto-animate>
-                <div class="w-full max-w-5xl mx-auto border-l-4 border-ag-accent pl-10">
-                    <div class="flex items-center gap-6 mb-4 lg:mb-4">
-                        <span class="px-3 py-1 bg-ag-accent/20 border border-ag-accent text-ag-accent tech-data text-sm uppercase">Electrónica de Potencia · 7mo Semestre</span>
-                        <span class="tech-data text-slate-400 text-sm uppercase">PROJECT: ENERGY_STORAGE_2026</span>
+                <div class="layout-hero">
+                    <div class="flex items-center justify-center gap-4 mb-6">
+                        <span class="badge badge-cyan">Electrónica de Potencia · 7mo Semestre</span>
+                        <span class="badge badge-green">PROJECT: ENERGY_STORAGE_2026</span>
                     </div>
-                    <h1 class="gradient-heading font-display text-3xl md:text-4xl lg:text-7xl font-black tracking-tighter mb-4 leading-tight">
+                    <h1 class="gradient-heading font-display text-3xl md:text-5xl lg:text-7xl font-black tracking-tighter mb-6 leading-tight">
                         "La guerra por la energía ya no es generarla... sino almacenarla."
                     </h1>
-                    <p class="text-2xl text-slate-300 border-b border-white/10 pb-8 mb-2 lg:mb-10 max-w-3xl">
+                    <p class="text-xl lg:text-2xl text-slate-300 max-w-3xl mx-auto mb-8">
                         Supercondensadores y Baterías: Física, Tipos y Tendencias 2026+
                     </p>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:p-6 max-w-2xl mb-4 lg:mb-4">
-                        <div class="glass-panel p-6 lg:p-6">
-                            <p class="tech-data text-ag-accent mb-2 text-xs">OPERATORS / PRESENTADO POR</p>
-                            <p class="text-sm font-bold text-white">Nicol Sáenz | Sebastián Landinez<br>Juan Lagos | Juan Suárez</p>
+                    <div class="flex flex-wrap justify-center gap-4 mb-8">
+                        <div class="glass-panel p-4 px-8 flex items-center gap-4">
+                            <div class="text-center">
+                                <p class="tech-data text-ag-accent mb-1 text-xs">PRESENTADO POR</p>
+                                <p class="text-sm font-bold text-white">Nicol Sáenz</p>
+                            </div>
+                        </div>
+                        <div class="glass-panel p-4 px-8 flex items-center gap-4">
+                            <div class="text-center">
+                                <p class="tech-data text-ag-green mb-1 text-xs">EQUIPO</p>
+                                <p class="text-sm font-bold text-white">4 Ingenieros</p>
+                            </div>
+                        </div>
+                        <div class="glass-panel p-4 px-8 flex items-center gap-4">
+                            <div class="text-center">
+                                <p class="tech-data text-ag-yellow mb-1 text-xs">FECHA</p>
+                                <p class="text-sm font-bold text-white">Mayo 2026</p>
+                            </div>
                         </div>
                     </div>
-                    <p class="tech-data text-slate-500 text-sm italic border-l-2 border-slate-600 pl-4">
+                    <p class="tech-data text-slate-500 text-base italic">
                         ❝ La energía no se crea ni se destruye... pero sí se almacena de forma inteligente. ❞
                     </p>
                 </div>
             </section>
 
             <!-- 02: AGENDA -->
-            <section data-auto-animate>
-                <h2 class="gradient-heading flex items-center gap-6 text-3xl mb-2 lg:mb-2"><span class="tech-data text-ag-accent bg-ag-accent/10 px-3 py-1 text-2xl">SYS.DIR</span> Agenda · Hoja de Ruta Técnica</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:p-6">
-                    <div class="glass-panel p-6 lg:p-6 border-l-4 border-l-ag-accent">
-                        <div class="tech-data text-ag-accent mb-2 text-xs">01. EL DILEMA GLOBAL</div>
+            <section data-auto-animate class="layout-dense">
+                <h2 class="gradient-heading flex items-center gap-4 text-2xl lg:text-3xl mb-4"><span class="tech-data text-ag-accent bg-ag-accent/10 px-3 py-1 text-xl">SYS.DIR</span> Agenda · Hoja de Ruta Técnica</h2>
+                <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="glass-panel p-4 border-l-4 border-ag-accent">
+                        <div class="tech-data text-ag-accent mb-1 text-xs">01. EL DILEMA GLOBAL</div>
                         <p class="text-sm text-slate-400 m-0">Contexto IEA/BNEF. Por qué importa hoy más que nunca.</p>
                     </div>
-                    <div class="glass-panel p-6 lg:p-6 border-l-4 border-l-ag-accent">
-                        <div class="tech-data text-ag-accent mb-2 text-xs">02. DIAGRAMA RAGONE</div>
+                    <div class="glass-panel p-4 border-l-4 border-ag-accent">
+                        <div class="tech-data text-ag-accent mb-1 text-xs">02. DIAGRAMA RAGONE</div>
                         <p class="text-sm text-slate-400 m-0">Compromiso ineludible Potencia vs Energía.</p>
                     </div>
-                    <div class="glass-panel p-6 lg:p-6 border-l-4 border-l-ag-accent">
-                        <div class="tech-data text-ag-accent mb-2 text-xs">03. SUPERCONDENSADORES</div>
+                    <div class="glass-panel p-4 border-l-4 border-ag-accent">
+                        <div class="tech-data text-ag-accent mb-1 text-xs">03. SUPERCONDENSADORES</div>
                         <p class="text-sm text-slate-400 m-0">Física EDLC, pseudocapacitancia, ESR y circuitos.</p>
                     </div>
-                    <div class="glass-panel p-6 lg:p-6 border-l-4 border-l-ag-warning">
-                        <div class="tech-data text-ag-warning mb-2 text-xs">04. BATERÍAS LÍNEA TIEMPO</div>
+                    <div class="glass-panel p-4 border-l-4 border-ag-warning">
+                        <div class="tech-data text-ag-warning mb-1 text-xs">04. BATERÍAS LÍNEA TIEMPO</div>
                         <p class="text-sm text-slate-400 m-0">LFP, NMC, Estado Sólido, Li-S, Na-Ion.</p>
                     </div>
-                    <div class="glass-panel p-6 lg:p-6 border-l-4 border-l-ag-green">
-                        <div class="tech-data text-ag-green mb-2 text-xs">05. COLOMBIA Y EL MUNDO</div>
+                    <div class="glass-panel p-4 border-l-4 border-ag-green">
+                        <div class="tech-data text-ag-green mb-1 text-xs">05. COLOMBIA Y EL MUNDO</div>
                         <p class="text-sm text-slate-400 m-0">Reto local, déficit ENFICC, Celsia Palmira 2.</p>
                     </div>
-                    <div class="glass-panel p-6 lg:p-6 border-l-4 border-l-ag-yellow">
-                        <div class="tech-data text-ag-yellow mb-2 text-xs">06. ELECTRÓNICA DE POTENCIA</div>
+                    <div class="glass-panel p-4 border-l-4 border-ag-yellow">
+                        <div class="tech-data text-ag-yellow mb-1 text-xs">06. ELECTRÓNICA DE POTENCIA</div>
                         <p class="text-sm text-slate-400 m-0">Convertidores DC-DC, semiconductores SiC/GaN.</p>
                     </div>
                 </div>
             </section>
 
             <!-- 03: CONTEXTO GLOBAL -->
-            <section data-auto-animate>
-                <div class="flex flex-col lg:flex-row gap-6 lg:p-6 lg:gap-6 items-center">
-                    <div class="w-full lg:w-1/2">
-                        <div class="tech-data text-slate-400 mb-4 text-sm">DATALOG: BLOOMBERG NEF [MAYO 2026]</div>
-                        <h2 class="gradient-heading font-bold silver-text mb-2">El Dilema Global de los 100 GW</h2>
-                        <div class="text-slate-300 text-xl mb-4 lg:mb-4 border-l-4 pl-6 border-ag-accent bg-ag-accent/5 p-6 rounded-r-xl">
+            <section data-auto-animate class="layout-dense">
+                <div class="layout-split-50-50 gap-8">
+                    <div>
+                        <div class="tech-data text-slate-400 mb-2 text-xs">DATALOG: BLOOMBERG NEF [MAYO 2026]</div>
+                        <h2 class="gradient-heading font-bold silver-text mb-3">El Dilema Global de los 100 GW</h2>
+                        <div class="text-slate-300 text-base mb-4 border-l-4 pl-4 border-ag-accent bg-ag-accent/5 p-4 rounded-r-lg">
                             La transición energética no falla por falta de generación… falla por falta de <strong class="text-white text-ag-accent">almacenamiento en el momento exacto</strong>.
                         </div>
 
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <div class="glass-panel p-6 text-center border-t-2 border-t-ag-accent">
-                                <p class="text-3xl font-black text-white m-0">112<span class="text-xl text-ag-accent">GW</span></p>
-                                <p class="tech-data text-slate-400 mt-2 text-xs m-0">INSTALADOS 2025</p>
+                        <div class="stats-row">
+                            <div class="stat-card accent">
+                                <p class="stat-value">112<span class="text-lg text-ag-accent ml-1">GW</span></p>
+                                <p class="stat-label">INSTALADOS 2025</p>
                             </div>
-                            <div class="glass-panel p-6 text-center border-t-2 border-t-ag-green">
-                                <p class="text-3xl font-black text-white m-0">+48<span class="text-xl text-ag-green">%</span></p>
-                                <p class="tech-data text-slate-400 mt-2 text-xs m-0">CRECIMIENTO YoY</p>
+                            <div class="stat-card success">
+                                <p class="stat-value">+48<span class="text-lg text-ag-green ml-1">%</span></p>
+                                <p class="stat-label">CRECIMIENTO YoY</p>
                             </div>
-                            <div class="glass-panel p-6 text-center border-t-2 border-t-ag-warning">
-                                <p class="text-3xl font-black text-white m-0">307<span class="text-xl text-ag-warning">GWh</span></p>
-                                <p class="tech-data text-slate-400 mt-2 text-xs m-0">ENERGÍA 2025</p>
-                            </div>
-                            <div class="glass-panel p-6 text-center">
-                                <p class="text-3xl font-black text-white m-0">4<span class="text-xl text-slate-400">años</span></p>
-                                <p class="tech-data text-slate-400 mt-2 text-xs m-0">10→100 GW (Solar: 8)</p>
+                            <div class="stat-card warning">
+                                <p class="stat-value">307<span class="text-lg text-ag-warning ml-1">GWh</span></p>
+                                <p class="stat-label">ENERGÍA 2025</p>
                             </div>
                         </div>
                     </div>
-                    <div class="w-full lg:w-1/2">
-                        <div class="glass-panel p-6 lg:p-6 animate-float">
-                            <h3 class="font-bold text-white mb-2 tech-data text-sm text-center">CRECIMIENTO GW/AÑO (PROYECCIÓN BNEF)</h3>
+                    <div>
+                        <div class="glass-panel p-4 animate-float">
+                            <h3 class="font-bold text-white mb-2 tech-data text-xs text-center">CRECIMIENTO GW/AÑO (PROYECCIÓN BNEF)</h3>
                             <div class="flex items-end space-x-4 h-64 border-b-2 border-l-2 border-white/20 pb-2 pl-4 relative">
                                 <div class="bg-slate-700 w-full rounded-t hover:bg-slate-500 transition-colors" style="height: 10%"></div>
                                 <div class="bg-slate-600 w-full rounded-t hover:bg-slate-500 transition-colors" style="height: 15%"></div>
@@ -1070,12 +1798,13 @@
                 backgroundTransition: 'fade',
                 controls: false,
                 progress: true,
-                center: true,
-                width: 1300,
-                height: 1100,
-                margin: 0.02,
-                minScale: 0.1,
-                maxScale: 2.0
+                center: false,         // Let our flexbox centering handle it
+                width: '100%',          // Fill available width
+                height: '100%',         // Fill available height
+                margin: 0,              // No wasted margin space
+                minScale: 1,
+                maxScale: 1,
+                disableLayout: true     // We manage layout via CSS
             });
 
             // ── GSAP: Cinematic Entrance Animations ──
